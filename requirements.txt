@@ -1,6 +1,6 @@
 networkx==2.1
 requests==2.18.4
-setuptools==36.5.0.post20170921
+setuptools==36.5.0
 tqdm==4.19.4
 click==6.7
 lxml==4.1.1
