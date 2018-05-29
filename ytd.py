@@ -1,6 +1,3 @@
-import os
-import sys
-import yaml
 import click
 from youtubetools.config import init, load_config, fetch_queue, network_queue
 from youtubetools.fetcher import ChannelFetcher
@@ -22,12 +19,6 @@ def fetch():
         fetcher.get_video_captions()        
         fetcher.archive_channel()
 
-def elasticsearch_export():
-    """
-    builds elasticsearch indexes with channel/video/comments information
-    """
-    #build_es_index()
-    raise NotImplementedError
 
 def channel_user_networks():
     """

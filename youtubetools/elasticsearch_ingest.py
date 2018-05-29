@@ -31,6 +31,7 @@ VIDEO_MAPPING = {
             "favorites": { "type": "integer" },
             "comment_count": { "type": "integer" },
             "caption": { "type": "text" },
+            "caption_len": { "type": "integer" },
             "users": { 
                 "type": "keyword"
             }
@@ -49,8 +50,10 @@ COMMENT_MAPPING = {
             "video_playlists": {"type": "keyword"},
             "user": { "type": "keyword"},
             "likes": { "type": "integer"},
-            "text": { "type": "text" },
+            "text": { "type": "text"},
+            "text_len": {"type": "integer"},
             "reply_count": { "type": "integer" },
+            "comment_thread": { "type": "keyword" },
             "timestamp": { "type": "date" },
             "top_level_comment": {"type": "boolean"}
         }
@@ -102,12 +105,17 @@ def elasticsearch_ingest():
 
                 video_playlists = [x["title"] for x in video.playlists]
 
-                #caption = video.caption()
+                caption = video.caption()
+                if caption:
+                    caption_len = len(caption.split())
+                else:
+                    caption_len = 0
 
                 doc = {
                     "id": video.id,
                     "title": video.title,
                     "channel": channel,
+                    "caption_len": caption_len, 
                     "description": video.description,
                     "publication_date": video.pub_date[:10],
                     "tags": video.tags,
@@ -117,7 +125,7 @@ def elasticsearch_ingest():
                     "dislikes": video.dislikes,
                     "favorites": video.favorites,
                     "comment_count": video.comment_count,
-                    "caption": video.caption(),
+                    "caption": caption,
                     "users": video.users(),
                     "duration": video.duration,
                     "playlists": video_playlists
@@ -127,6 +135,12 @@ def elasticsearch_ingest():
                 comments_doc = []
                 for comment in video.comments:
                     top_level_comment = True if "." in comment["id"] else False
+
+                    if comment["text"]:
+                        text_len = len(comment["text"].split())
+                    else:
+                        text_len = 0
+
                     comments_doc.append({
                         "_index": comment_index,
                         "_type": COMMENT_DOC_TYPE,
@@ -138,7 +152,9 @@ def elasticsearch_ingest():
                             "video_playlists": video_playlists,
                             "user": comment["author"],
                             "text": comment["text"],
+                            "text_len": text_len,
                             "reply_count": comment["reply_count"],
+                            "comment_thread": comment["comment_thread"],
                             "timestamp": comment["timestamp"],
                             "likes": comment["likes"],
                             "top_level_comment": top_level_comment

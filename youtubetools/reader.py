@@ -27,7 +27,7 @@ Video properities:
 
 Use:
 
-yt = Channelreader("<channel name>")
+yt = ChannelReader("<channel name>")
 for video in yt.videos:
     print(video.title)
     #...
@@ -140,6 +140,10 @@ class Video(object):
             text = post["snippet"]["textOriginal"]
             timestamp = post["snippet"]["publishedAt"]
             likes = post["snippet"]["likeCount"]
+            if reply_count > 0 or "." in id_:
+                comment_thread = id_.split(".")[0].strip()
+            else:
+                comment_thread = None
             if "parentId" in post["snippet"]:
                 parent_id = post["snippet"]["parentId"]
             else:
@@ -150,6 +154,7 @@ class Video(object):
                 "text": text,
                 "parent_id": parent_id,
                 "reply_count": reply_count,
+                "comment_thread": comment_thread,
                 "timestamp": timestamp,
                 "likes": likes
             })
@@ -242,15 +247,15 @@ class ChannelReader(object):
                     })
 
 
-    def __init__(self, channel_name):
+    def __init__(self, channel_name=None, filepath=None):
         """
         Initialize YoutubeChannel object with corpurs data directory and channel name
         """
-
-        CF = load_config()
-
-        self.channel_file = os.path.join(CF["PROJECT_DIR"],"channels", "{}.zip".format(channel_name))
-
+        if channel_name:
+            CF = load_config()
+            self.channel_file = os.path.join(CF["PROJECT_DIR"],"channels", "{}.zip".format(channel_name))
+        else:
+            self.channel_file = filepath
         self.videos = []
         self.playlists = []
         
@@ -285,12 +290,25 @@ class ChannelReader(object):
     #####
 
     #### comment generators
+    def get_all_comments(self):
+        comments = []
+        for video in self._videos():
+            comments += [ x["text"] for x in video.comments ]
+        return comments
+
     def all_comments_by_user(self, user):
         all_comments = []
-        for video in self._videos():
+        for video in tqdm(self._videos()):
             all_comments += [ c for c in video.comments_by_user(user) ]
         return all_comments
     ######
+
+    def get_all_captions(self):
+        captions = []
+        for video in tqdm(self._videos()):
+            captions.append(video.caption())
+        return captions
+
 
     #### video stats
     def user_stats(self):

@@ -102,6 +102,8 @@ class ChannelFetcher(object):
             channel_id = get_channel_id(self.youtube, channel.replace("user/", "").strip())
         self.channel_id = channel_id
 
+        print(self.channel_id)
+
         #init temp and export direcotry
         self.data_dir = os.path.join(CF["PROJECT_DIR"], TMP_DIR)
         if not os.path.exists(self.data_dir):
@@ -169,6 +171,7 @@ class ChannelFetcher(object):
                 self.rs = requests.Session()
 
 
+
             print("initialising channel {} ...".format(self.channel_title))
 
             # get id of uploads playlist
@@ -190,6 +193,7 @@ class ChannelFetcher(object):
                     next_page = playlist_page["nextPageToken"]
                 else:
                     break
+
 
             #save channel meta data
             channel_meta = os.path.join(self.channel_dir, "channel_meta.json")
