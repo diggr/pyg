@@ -148,9 +148,17 @@ class Video(object):
                 parent_id = post["snippet"]["parentId"]
             else:
                 parent_id = None
+
+            if "authorChannelId" in post["snippet"]:
+                author_id =  post["snippet"]["authorChannelId"]["value"]
+            else:
+                print("NO AUTHOR CHANNEL ID")
+                author_id = None
+
             self.comments.append({
                 "id": id_,
                 "author": author_name,
+                "author_id":author_id, 
                 "text": text,
                 "parent_id": parent_id,
                 "reply_count": reply_count,
