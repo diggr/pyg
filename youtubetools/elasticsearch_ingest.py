@@ -1,9 +1,10 @@
 from elasticsearch import Elasticsearch
 from .reader import ChannelReader
 import os
+import json
 from tqdm import tqdm
 from elasticsearch import helpers
-from .config import load_elasticsearch_config, load_config
+from .config import load_elasticsearch_config, load_config, ADDON_DIR
 
 VIDEO_INDEX = "{prefix}_yt_videos"
 VIDEO_DOC_TYPE = "video"
@@ -48,6 +49,9 @@ COMMENT_MAPPING = {
             "video_id": { "type": "keyword" },
             "video_title": { "type": "text" },
             "video_playlists": {"type": "keyword"},
+            "classifiers": {
+                "type": "keyword"
+            },            
             "user": { "type": "keyword"},
             "user_id": { "type": "keyword" },
             "likes": { "type": "integer"},
@@ -76,12 +80,31 @@ def _init_es(es, prefix, video_index, comment_index):
     es.indices.create(comment_index)
     es.indices.put_mapping(index=comment_index, doc_type=COMMENT_DOC_TYPE, body=COMMENT_MAPPING)
 
+
+def load_comment_classifier(cf):
+    filepath = os.path.join(cf["ADDON_DIR"], "{}_comment_classifier.json".format(cf["PROJECT_NAME"]))
+    print(filepath)
+    if os.path.exists(filepath):
+        return json.load(open(filepath))
+    else:
+        return None
+    
+def get_classifiers(classifier_dict, id_):
+    if classifier_dict:
+        if id_ in classifier_dict:
+            print (classifier_dict[id_]) 
+            return classifier_dict[id_]
+    return None
+
 def elasticsearch_ingest():
     """
     Imports channel :channel_name: into elasticsearch
     """
     CF = load_config()
     ES_SERVER, prefix = load_elasticsearch_config()
+
+    comment_classfifier =  load_comment_classifier(CF)
+    print(len(comment_classfifier))
 
     video_index = VIDEO_INDEX.format(prefix=prefix)
     comment_index = COMMENT_INDEX.format(prefix=prefix)
@@ -142,6 +165,8 @@ def elasticsearch_ingest():
                     else:
                         text_len = 0
 
+                    classifiers = get_classifiers(comment_classfifier, comment["id"])
+
                     comments_doc.append({
                         "_index": comment_index,
                         "_type": COMMENT_DOC_TYPE,
@@ -151,6 +176,7 @@ def elasticsearch_ingest():
                             "channel": channel, 
                             "video_title": video.title,
                             "video_playlists": video_playlists,
+                            "classifiers": classifiers,
                             "user": comment["author"],
                             "user_id": comment["author_id"],
                             "text": comment["text"],

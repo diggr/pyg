@@ -8,6 +8,7 @@ Initializes and loads project yaml files:
 
 import yaml
 import os
+import json
 
 __VERSION__ = 0.1
 
@@ -38,7 +39,8 @@ FETCH_TEMPLATE = """
 # - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
 """
 
-
+DATA_DIR = "data"
+ADDON_DIR = "addon"
 
 def init():
     """
@@ -95,6 +97,8 @@ def load_config():
     config = {
         "PROJECT_DIR": PROJECT["dir"],
         "YOUTUBE_API_KEY": YOUTUBE_API_KEY,
+        "ADDON_DIR": os.path.join(PROJECT["dir"], ADDON_DIR),
+        "PROJECT_NAME": PROJECT["name"]
     }
     return config
 
