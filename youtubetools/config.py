@@ -10,7 +10,7 @@ import yaml
 import os
 import json
 
-__VERSION__ = 0.2
+__VERSION__ = 0.3
 
 PROV_AGENT = "pyg_{}".format(__VERSION__)
 
