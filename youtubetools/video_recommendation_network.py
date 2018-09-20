@@ -18,13 +18,15 @@ import json
 import requests
 import os
 import networkx as nx
+
+from datetime import datetime
 from tqdm import tqdm
 from collections import defaultdict
 from apiclient.discovery import build
 from bs4 import BeautifulSoup
 
 from .config import load_config, PROV_AGENT
-from .pit import Provenance
+from pit.prov import Provenance
 
 OUT_DIR = "video_networks"
 
@@ -95,12 +97,18 @@ class VideoRecommendationNetwork(object):
     def to_graphml(self, filepath= None):
         """
         saves video network as graphml file
-        """        
-        if not filepath:
-            if self.name:
-                filepath = os.path.join(self.out_dir, "{}.graphml".format(self.name))
-            else:
-                filepath = os.path.join(self.out_dir, "{}.graphml".format(self.seeds[0]))
+        """
+        if self.name:
+            filename = "{}_{}".format(self.name, datetime.now().isoformat())
+        else:
+            filename = "{}_{}".format(self.seeds[0], datetime.now().isoformat())
+
+        filepath =  os.path.join(self.out_dir, "{}.graphml".format(filename))
+        # if not filepath:
+        #     if self.name:
+        #         filepath = os.path.join(self.out_dir, "{}.graphml".format(filename))
+        #     else:
+        #         filepath = os.path.join(self.out_dir, "{}.graphml".format(self.seeds[0]))
 
         G = nx.DiGraph()
 

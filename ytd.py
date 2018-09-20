@@ -1,79 +1,71 @@
 import click
-from youtubetools.config import init, load_config, fetch_queue, network_queue
-from youtubetools.fetcher import ChannelFetcher
+import os
+from youtubetools.config import init_project, load_config, fetch_config, network_config
+from youtubetools.fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetcher
 from youtubetools.channel_network import RelatedChannelsNetwork
 from youtubetools.video_recommendation_network import VideoRecommendationNetwork
 from youtubetools.elasticsearch_ingest import elasticsearch_ingest
 
 
-def fetch():
+@click.group()
+def cli():
     """
-    fetches youtube channels in fetch.yml
+    pyg command line tool
     """
-    for channel in fetch_queue():
-        fetcher = ChannelFetcher(channel=channel)
-        fetcher.get_channel_comments()
-        fetcher.get_playlists()
-        fetcher.get_video_metadata()
-        fetcher.get_video_comments()
-        fetcher.get_video_captions()        
-        fetcher.archive_channel()
+
+@cli.command()
+def init():
+    print("init pyg project")
+    init_project()
+
+@cli.command()
+@click.argument("group")
+def fetch(group):
+    fetch_list = fetch_config(group)
+    if group == "channels":
+        for channel in fetch_list:
+            ChannelFetcher(channel=channel)
+    else:
+        VideoFetcher(fetch_list, group)
+
+@cli.command()
+@click.argument("group")
+def update(group):
+    fetch_list = fetch_config(group)
+    if group == "channels":
+        for channel in fetch_list:
+            ChannelUpdateFetcher(channel=channel)
 
 
-def channel_user_networks():
-    """
-    builds user network based on video comments for channels spezified in network.yml
-    """
-    raise NotImplementedError
-
-def video_networks():
-    """
-    builds video networks with seeds from network.yml
-    """
-    for name, config  in network_queue("videos"):
-
-        print("\t buliding network <{}>".format(name))
-
+@cli.command()
+@click.argument("network_name")
+def network(network_name):
+    config = network_config(network_name)
+    type_ = config["type"]
+    print("\t buliding network <{}>".format(network_name))
+    if type_ == "videos":
         q = config["q"] if "q" in config else None
         seeds = config["seeds"] if "seeds" in config else None
-        
         vrn = VideoRecommendationNetwork(
-            name=name,
+            name=network_name,
             q=q, 
             seeds=seeds, 
             depth=config["depth"])
         vrn.to_graphml()
 
-def channel_networks():
-    """
-    builds video networks with seeds from network.yml
-    """
-    for name, config in network_queue("channels"):
-        print("\t buliding network <{}>".format(name))
+    elif type_ == "channels":
         cn = RelatedChannelsNetwork(
-            name=name, 
+            name=network_name, 
             seeds=config["seeds"], 
             depth=config["depth"], 
             featured=config["featured"])
         cn.to_graphml()
- 
-@click.command()
-@click.argument("process")
-def main(process):
-    if process == "init":
-        print("init project ...")
-        init()
-    if process == "fetch":
-        print("fetching youtube channels ...")
-        fetch()
-    if process == "build-networks":
-        print("building channel network files ...")
-        channel_networks()
-        print("building video networks files ...")
-        video_networks()
-    if process == "elasticsearch-ingest":
-        elasticsearch_ingest()
-        
 
+@cli.command()
+@click.argument("group", default="channels")
+@click.argument("prefix", default="")
+def ingest(group, prefix):
+    elasticsearch_ingest(group, prefix)
 
-
+if __name__ == "__main__":
+    cli()

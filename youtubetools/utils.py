@@ -1,3 +1,4 @@
+import re
 
 def get_channel_id(youtube, user_name):
     meta = youtube.channels().list(
@@ -9,3 +10,10 @@ def get_channel_id(youtube, user_name):
     except:
         print("user name <{}> not found".format(user_name))
         return None
+
+
+def remove_html(text):
+    """
+    Removes html tags from text
+    """
+    return re.sub('<[^<]+?>', '', text)        

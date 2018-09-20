@@ -1,9 +1,9 @@
-from elasticsearch import Elasticsearch
-from .reader import ChannelReader
 import os
 import json
 from tqdm import tqdm
 from elasticsearch import helpers
+from elasticsearch import Elasticsearch
+from .reader import YoutubeArchiveReader
 from .config import load_elasticsearch_config, load_config, ADDON_DIR
 
 VIDEO_INDEX = "{prefix}_yt_videos"
@@ -96,15 +96,29 @@ def get_classifiers(classifier_dict, id_):
             return classifier_dict[id_]
     return None
 
-def elasticsearch_ingest():
+
+def get_channel_files(CF):
+    channels = []
+    channel_dir = os.path.join(CF["PROJECT_DIR"], "channels")
+    for filename in os.listdir(channel_dir):
+        if ".prov" not in filename:
+            archive_filepath = os.path.join(channel_dir, filename)
+            channels.append(archive_filepath)
+    return channels
+
+
+def elasticsearch_ingest(group, costum_prefix=""):
     """
     Imports channel :channel_name: into elasticsearch
     """
     CF = load_config()
     ES_SERVER, prefix = load_elasticsearch_config()
 
+    if costum_prefix:
+        prefix = costum_prefix
+
     comment_classfifier =  load_comment_classifier(CF)
-    print(len(comment_classfifier))
+    #print(len(comment_classfifier))
 
     video_index = VIDEO_INDEX.format(prefix=prefix)
     comment_index = COMMENT_INDEX.format(prefix=prefix)
@@ -117,77 +131,89 @@ def elasticsearch_ingest():
     
     _init_es(es, prefix, video_index, comment_index)
 
-    channel_dir = os.path.join(CF["PROJECT_DIR"], "channels")
-    for file_name in os.listdir(channel_dir):
-        if ".prov" not in file_name:
-            channel = file_name.replace(".zip", "").strip()
-            print("import channel <{}> into elasticsearch".format(channel))
+    if group == "channels":
+        archives = get_channel_files(CF)
+    else:
+        archive_dir = os.path.join(CF["PROJECT_DIR"], "videos")
+        archives = [ os.path.join(archive_dir, "{}.zip".format(group)) ] 
 
-            yy = ChannelReader(channel)
+    for archive_filepath in archives:
+        print("import youtube archive <{}> into elasticsearch".format(archive_filepath.split("/")[-1]))
 
-            for i, video in tqdm(enumerate(yy.videos)):
+        #yy = ChannelReader(channel)
 
-                video_playlists = [x["title"] for x in video.playlists]
+        archive = YoutubeArchiveReader(archive_filepath)
 
+        channel = archive_filepath.split("/")[-1].replace(".zip", "")
+
+        for video in tqdm(archive):
+
+            video_playlists = [x["title"] for x in video.playlists]
+            try:
                 caption = video.caption()
-                if caption:
-                    caption_len = len(caption.split())
+            except:
+                caption = None
+            if caption:
+                caption_len = len(caption.split())
+            else:
+                caption_len = 0
+
+            doc = {
+                "id": video.id,
+                "title": video.title,
+                "channel": channel,
+                "caption_len": caption_len, 
+                "description": video.description,
+                "publication_date": video.pub_date[:10],
+                "tags": video.tags,
+                "categories": video.categories,
+                "views": video.views,
+                "likes": video.likes,
+                "dislikes": video.dislikes,
+                "favorites": video.favorites,
+                "comment_count": video.comment_count,
+                "caption": caption,
+                "users": video.users(),
+                "duration": video.duration,
+                "playlists": video_playlists
+            }
+            res = es.index(index=video_index, doc_type=VIDEO_DOC_TYPE, id=video.id, body=doc)
+
+            comments_doc = []
+            for comment in video.comments:
+                top_level_comment = True if "." in comment["id"] else False
+
+                if comment["text"]:
+                    text_len = len(comment["text"].split())
                 else:
-                    caption_len = 0
+                    text_len = 0
 
-                doc = {
-                    "id": video.id,
-                    "title": video.title,
-                    "channel": channel,
-                    "caption_len": caption_len, 
-                    "description": video.description,
-                    "publication_date": video.pub_date[:10],
-                    "tags": video.tags,
-                    "categories": video.categories,
-                    "views": video.views,
-                    "likes": video.likes,
-                    "dislikes": video.dislikes,
-                    "favorites": video.favorites,
-                    "comment_count": video.comment_count,
-                    "caption": caption,
-                    "users": video.users(),
-                    "duration": video.duration,
-                    "playlists": video_playlists
-                }
-                res = es.index(index=video_index, doc_type=VIDEO_DOC_TYPE, id=video.id, body=doc)
+                classifiers = get_classifiers(comment_classfifier, comment["id"])
 
-                comments_doc = []
-                for comment in video.comments:
-                    top_level_comment = True if "." in comment["id"] else False
-
-                    if comment["text"]:
-                        text_len = len(comment["text"].split())
-                    else:
-                        text_len = 0
-
-                    classifiers = get_classifiers(comment_classfifier, comment["id"])
-
-                    comments_doc.append({
-                        "_index": comment_index,
-                        "_type": COMMENT_DOC_TYPE,
-                        "_id": comment["id"],
-                        "_source": {
-                            "video_id": video.id,
-                            "channel": channel, 
-                            "video_title": video.title,
-                            "video_playlists": video_playlists,
-                            "classifiers": classifiers,
-                            "user": comment["author"],
-                            "user_id": comment["author_id"],
-                            "text": comment["text"],
-                            "text_len": text_len,
-                            "reply_count": comment["reply_count"],
-                            "comment_thread": comment["comment_thread"],
-                            "timestamp": comment["timestamp"],
-                            "likes": comment["likes"],
-                            "top_level_comment": top_level_comment
-                        }
-                    })
-                helpers.bulk(es, comments_doc)
+                comments_doc.append({
+                    "_index": comment_index,
+                    "_type": COMMENT_DOC_TYPE,
+                    "_id": comment["id"],
+                    "_source": {
+                        "video_id": video.id,
+                        "channel": channel, 
+                        "video_title": video.title,
+                        "video_playlists": video_playlists,
+                        "classifiers": classifiers,
+                        "user": comment["author"],
+                        "user_id": comment["author_id"],
+                        "text": comment["text"],
+                        "text_len": text_len,
+                        "reply_count": comment["reply_count"],
+                        "comment_thread": comment["comment_thread"],
+                        "timestamp": comment["timestamp"],
+                        "likes": comment["likes"],
+                        "top_level_comment": top_level_comment
+                    }
+                })
+            helpers.bulk(es, comments_doc)
     
+
+
+
 

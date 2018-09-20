@@ -23,17 +23,19 @@ import time
 import pickle
 import os
 import networkx as nx
+
+from datetime import datetime
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from collections import defaultdict
 from apiclient.discovery import build
 
-from .pit import Provenance
+from pit.prov import Provenance
 
 from .utils import get_channel_id
 from .config import load_config, PROV_AGENT
 
-OUT_DIR = "channel_network"
+OUT_DIR = "channel_networks"
 
 YOUTUBE_CHANNEL = "https://www.youtube.com/channel/{id}"
 
@@ -134,11 +136,13 @@ class RelatedChannelsNetwork(object):
         Creates graphml file from related channel network, including channel stats for nodes
         """
         if self.name:
-            filepath = os.path.join(self.out_dir, "{}.graphml".format(self.name))
+            filename = "{}_{}".format(self.name, datetime.now().isoformat())
+            filepath = os.path.join(self.out_dir, "{}.graphml".format(filename))
         else: 
             seed_title = self.channel_metadata[self.seeds[0]]["title"]
             if self.featured:
                 seed_title = "{}_f".format(seed_title)
+            filename = "{}_{}".format(seed_title, datetime.now().isoformat())
             filepath = os.path.join(self.out_dir, "{}.graphml".format(seed_title))
 
         G = nx.DiGraph()

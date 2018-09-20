@@ -15,6 +15,6 @@ setup(
         "PyYAML"],
     entry_points="""
         [console_scripts]
-        pyg=ytd:main
+        pyg=ytd:cli
     """
 )

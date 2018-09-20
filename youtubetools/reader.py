@@ -37,10 +37,13 @@ for video in yt.videos:
 import json
 import os
 import re
+import zipfile
+
 from tqdm import tqdm
 from collections import Counter, defaultdict
+
 from .config import load_config
-import zipfile
+from .zip_archive import ZipArchive
 
 # directories
 DATA_DIR = "data"
@@ -48,6 +51,78 @@ VIDEO_METADATA_DIR = "video_meta"
 VIDEO_CAPTIONS_DIR = "video_captions"
 VIDEO_COMMENTS_DIR = "video_comments"
 PLAYLISTS_DIR = "playlists"
+
+
+
+class YoutubeArchiveReader(object):
+
+    def __init__(self, filepath):
+        self._archive = ZipArchive(filepath)
+        self._update_files = self._get_update_files(filepath)
+
+        self.video_ids = []
+        self.videos = {}
+
+        for video_id, archive in self._all_video_ids():
+            self.video_ids.append(video_id)
+            video = Video(archive, video_id)
+            self.videos[video.id] = video
+
+    def _all_video_ids(self):
+        video_ids = { video_id: self._archive for video_id in self._archive.get("video_ids.json") }
+        for update_file in self._update_files:
+            for updated in update_file.get("video_ids.json"):
+                video_ids[updated] = update_file
+        
+        for video_id, archive in video_ids.items():
+            yield video_id, archive
+
+
+    def _get_update_files(self, filepath):
+
+        update_files = []
+
+        base_path = os.path.dirname(filepath)
+        archive = os.path.basename(filepath)
+        for filename in sorted(os.listdir(base_path)):
+            if archive != filename and filename.startswith(archive.replace(".zip", "")) and not filename.endswith(".prov"):
+                print(filename)
+                update_files.append(ZipArchive(os.path.join(base_path, filename)))
+        return update_files
+
+
+    def _load_video(self, video_id):
+        return self.videos[video_id]
+
+    def __iter__(self):
+        for video in self.videos.values():
+            yield video
+
+#     def _load_playlists(self):
+#         """
+#         loads all playlists from channel and updates videos with playlist information
+#         """
+#         playlists_list = json.loads(self.channel_zip.read("playlists.json"))
+#         for playlist in playlists_list:
+#             id_ = playlist["id"]
+#             title = playlist["snippet"]["title"]
+#             self.playlists.append(Playlist(id_, title, self.channel_zip))
+#         self._update_video_playlists()
+      
+#     def _update_video_playlists(self):
+#         for video in self.videos:
+#             for playlist in self.playlists:
+#                 if playlist.contains_video(video.id):
+#                     video.playlists.append({
+#                         "id": playlist.id,
+#                         "title": playlist.title
+#                     })
+
+    def __getitem__(self, video_id):
+        video = self._load_video(video_id)
+        return video
+
+
 
 class Video(object):
 
@@ -86,16 +161,17 @@ class Video(object):
         #print(h+ m+ s)
         return h + m + s
 
-    def __init__(self, channel_file, channel_zip, video_id):
+    def __init__(self, archive, video_id):
         #video_meta = os.path.join(channel_dir, "video_meta")
+
+        self._archive = archive
+
         video_meta_filepath = os.path.join(VIDEO_METADATA_DIR, "{}.json".format(video_id))
-        video_meta_data =  json.loads(channel_zip.read(video_meta_filepath).decode())
+        video_meta_data =  archive.get(video_meta_filepath)
 
         meta = video_meta_data["items"][0]
         snippet = meta["snippet"]
         content_details = meta["contentDetails"]
-
-        self.channel_file = channel_file
 
         #general video metadata
         self.id = video_id
@@ -125,15 +201,13 @@ class Video(object):
         comments_filepath = os.path.join(VIDEO_COMMENTS_DIR, "{}_threads.json".format(self.id))
         replies_filepath = os.path.join(VIDEO_COMMENTS_DIR, "{}_comments.json".format(self.id))
         try:
-            comments_data = json.loads(channel_zip.read(comments_filepath).decode())
+            comments_data = archive.get(comments_filepath)
         except:
             print("no comments available for <{}>".format(self.id))
             return
-        try: 
-            replies_data = json.loads(channel_zip.read(replies_filepath).decode())
-        except:
-            replies_data = {}
-
+        
+        replies_data = archive.get(replies_filepath)
+        
         for post, reply_count in self._all_comments(comments_data, replies_data):
             id_ = post["id"]
             author_name = post["snippet"]["authorDisplayName"]
@@ -187,12 +261,13 @@ class Video(object):
         Loads caption (if available) for video.
         """
         caption_filepath = os.path.join(VIDEO_CAPTIONS_DIR, "{}.{}".format(self.id, filetype))
-        with zipfile.ZipFile(self.channel_file) as zf:
-            try:
-                caption = zf.read(caption_filepath)
-                return caption.decode()
-            except:
-                return None
+        return self._archive.get(caption_filepath)
+        # with zipfile.ZipFile(self.channel_file) as zf:
+        #     try:
+        #         caption = zf.read(caption_filepath)
+        #         return caption.decode()
+        #     except:
+        #         return None
 
     def comments_by_user(self, user):
         for comment in self.comments:
@@ -221,113 +296,113 @@ class Playlist(object):
             return False
 
 
-class ChannelReader(object):
-    """
-    Reader class for scraped youtube channels
-    """
+# class ChannelReader(object):
+#     """
+#     Reader class for scraped youtube channels
+#     """
 
-    def _load_video_metadata(self):
-        """
-        Loads video metadata, captions and comments into the YoutubeChannel object
-        """
-        for video_id in tqdm(self.video_ids):
-            #load video metadata form zip file
-            self.videos.append(Video(self.channel_file, self.channel_zip, video_id))
+#     def _load_video_metadata(self):
+#         """
+#         Loads video metadata, captions and comments into the YoutubeChannel object
+#         """
+#         for video_id in tqdm(self.video_ids):
+#             #load video metadata form zip file
+#             self.videos.append(Video(self.channel_file, self.channel_zip, video_id))
 
-    def _load_playlists(self):
-        """
-        loads all playlists from channel and updates videos with playlist information
-        """
-        playlists_list = json.loads(self.channel_zip.read("playlists.json"))
-        for playlist in playlists_list:
-            id_ = playlist["id"]
-            title = playlist["snippet"]["title"]
-            self.playlists.append(Playlist(id_, title, self.channel_zip))
-        self._update_video_playlists()
+#     def _load_playlists(self):
+#         """
+#         loads all playlists from channel and updates videos with playlist information
+#         """
+#         playlists_list = json.loads(self.channel_zip.read("playlists.json"))
+#         for playlist in playlists_list:
+#             id_ = playlist["id"]
+#             title = playlist["snippet"]["title"]
+#             self.playlists.append(Playlist(id_, title, self.channel_zip))
+#         self._update_video_playlists()
       
-    def _update_video_playlists(self):
-        for video in self.videos:
-            for playlist in self.playlists:
-                if playlist.contains_video(video.id):
-                    video.playlists.append({
-                        "id": playlist.id,
-                        "title": playlist.title
-                    })
+#     def _update_video_playlists(self):
+#         for video in self.videos:
+#             for playlist in self.playlists:
+#                 if playlist.contains_video(video.id):
+#                     video.playlists.append({
+#                         "id": playlist.id,
+#                         "title": playlist.title
+#                     })
 
 
-    def __init__(self, channel_name=None, filepath=None):
-        """
-        Initialize YoutubeChannel object with corpurs data directory and channel name
-        """
-        if channel_name:
-            CF = load_config()
-            self.channel_file = os.path.join(CF["PROJECT_DIR"],"channels", "{}.zip".format(channel_name))
-        else:
-            self.channel_file = filepath
-        self.videos = []
-        self.playlists = []
+#     def __init__(self, channel_name=None, filepath=None):
+#         """
+#         Initialize YoutubeChannel object with corpurs data directory and channel name
+#         """
+#         if channel_name:
+#             CF = load_config()
+#             self.channel_file = os.path.join(CF["PROJECT_DIR"],"channels", "{}.zip".format(channel_name))
+#         else:
+#             self.channel_file = filepath
+#         self.videos = []
+#         self.playlists = []
         
-        self.channel_zip = zipfile.ZipFile(self.channel_file)
+#         self.channel_zip = zipfile.ZipFile(self.channel_file)
 
-        self.video_ids = json.loads(self.channel_zip.read("video_ids.json").decode())
-        self._load_video_metadata()
-        self._load_playlists()
+#         self.video_ids = json.loads(self.channel_zip.read("video_ids.json").decode())
+#         self._load_video_metadata()
+#         self._load_playlists()
         
-        self.channel_zip.close()
+#         self.channel_zip.close()
 
 
-    def _videos(self):
-        for video in self.videos:
-            yield video
+#     def _videos(self):
+#         for video in self.videos:
+#             yield video
 
-    ### video generators
-    def videos_by_tag(self, tag):
-        for video in self._videos():
-            if tag in video.tags:
-                yield video
+#     ### video generators
+#     def videos_by_tag(self, tag):
+#         for video in self._videos():
+#             if tag in video.tags:
+#                 yield video
     
-    def videos_by_category(self, category):
-        for video in self._videos():
-            if category in video.categories:
-                yield video
+#     def videos_by_category(self, category):
+#         for video in self._videos():
+#             if category in video.categories:
+#                 yield video
 
-    def videos_by_user(self, user):
-        for video in self._videos():
-            if user in video.users():
-                yield video
-    #####
+#     def videos_by_user(self, user):
+#         for video in self._videos():
+#             if user in video.users():
+#                 yield video
+#     #####
 
-    #### comment generators
-    def get_all_comments(self):
-        comments = []
-        for video in self._videos():
-            comments += [ x["text"] for x in video.comments ]
-        return comments
+#     #### comment generators
+#     def get_all_comments(self):
+#         comments = []
+#         for video in self._videos():
+#             comments += [ x["text"] for x in video.comments ]
+#         return comments
 
-    def all_comments_by_user(self, user):
-        all_comments = []
-        for video in tqdm(self._videos()):
-            all_comments += [ c for c in video.comments_by_user(user) ]
-        return all_comments
-    ######
+#     def all_comments_by_user(self, user):
+#         all_comments = []
+#         for video in tqdm(self._videos()):
+#             all_comments += [ c for c in video.comments_by_user(user) ]
+#         return all_comments
+#     ######
 
-    def get_all_captions(self):
-        captions = []
-        for video in tqdm(self._videos()):
-            captions.append(video.caption())
-        return captions
+#     def get_all_captions(self):
+#         captions = []
+#         for video in tqdm(self._videos()):
+#             captions.append(video.caption())
+#         return captions
 
 
-    #### video stats
-    def user_stats(self):
-        user_dict = defaultdict(int)
-        for video in self._videos():
-            for user in video.users():
-                user_dict[user] += 1
-        return sorted(user_dict.items(), key=lambda x: -x[1])
+#     #### video stats
+#     def user_stats(self):
+#         user_dict = defaultdict(int)
+#         for video in self._videos():
+#             for user in video.users():
+#                 user_dict[user] += 1
+#         return sorted(user_dict.items(), key=lambda x: -x[1])
 
-    def video_by_id(self, id_):
-        for video in self.videos:
-            if video.id == id_:
-                return video            
+#     def video_by_id(self, id_):
+#         for video in self.videos:
+#             if video.id == id_:
+#                 return video            
 

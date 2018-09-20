@@ -2,11 +2,11 @@ import os
 import zipfile
 from tqdm import tqdm 
 from youtubetools.reader import ChannelReader
+from youtubetools.fetcher import VideoFetcher, ChannelFetcher
 
 
-
-cr = ChannelReader("/home/pmuehleder/data/youtube-counterpublics/data/channels/NuoViso.TV.zip")
-print(cr.videos[1].users())
+#cr = ChannelReader("/home/pmuehleder/data/youtube-counterpublics/data/channels/NuoViso.TV.zip")
+#print(cr.videos[1].users())
 # channel_dir = "/home/pmuehleder/data/youtube/YongYea"
 # #export_dir 
 # channel_name = "test.zip"
@@ -23,3 +23,6 @@ print(cr.videos[1].users())
 #                 zf.write(source_filepath, os.path.relpath(source_filepath, channel_dir))
 
 # archive_channel()
+
+#fetcher = VideoFetcher(["rVMTWgAgVfs", "B5P_eB7a32c"])
+fetcher = ChannelFetcher("channel/UCT6iAerLNE-0J1S_E97UAuQ")

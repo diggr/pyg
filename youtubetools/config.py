@@ -10,27 +10,28 @@ import yaml
 import os
 import json
 
-__VERSION__ = 0.1
+__VERSION__ = 0.2
 
 PROV_AGENT = "pyg_{}".format(__VERSION__)
 
 NETWORK_TEMPLATE = """
-# videos:
-#   mgs:
-#     q: 'metal gear solid'
-#     depth: 1
-#   yy_thegift:
-#     seeds:
-#     - 'Fg1EvKUhZw4'
-#     depth: 3
+# mgs:
+#   type: 'videos'
+#   q: 'metal gear solid'
+#   depth: 1
 #
-# channels:
-#   yongyea:
-#     seeds:
-#     - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
-#     - 'user/pythonselkanHD'
-#     featured: false
-#     depth: 5    
+# yy_thegift:
+#   seeds:
+#   - 'Fg1EvKUhZw4'
+#   depth: 3
+#
+# yongyea:
+#   type: 'channels'
+#   seeds:
+#   - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
+#   - 'user/pythonselkanHD'
+#   featured: false
+#   depth: 5    
 """
 
 FETCH_TEMPLATE = """
@@ -42,7 +43,7 @@ FETCH_TEMPLATE = """
 DATA_DIR = "data"
 ADDON_DIR = "addon"
 
-def init():
+def init_project():
     """
     Creates templates for config.yml, fetch.yml, network.yml
     """
@@ -59,8 +60,6 @@ def init():
         },
         "elasticsearch" : {
             "url": "",
-            "user": "",
-            "password": "",
             "prefix": "pyg_"
         }
     }
@@ -149,7 +148,25 @@ def fetch_queue():
         for channel in fetch["channels"]:
             yield channel
 
-def network_queue(network_type):
+def fetch_config(group):
+    """
+    yields all channel in fetch.yml
+    """
+    try:
+        with open("fetch.yml") as f:
+            fetch = yaml.load(f)
+    except:
+        raise IOError("No valid fetch.yml available")
+    
+    #if "channels" not in fetch:
+
+    if group in fetch:
+        return fetch[group]
+    else:
+        raise IOError("fetch.yml not configured correclty")
+
+
+def network_config(network_name):
     """
     yields all network graph specifications in network.yml
     """
@@ -159,7 +176,8 @@ def network_queue(network_type):
     except:
         raise IOError("network.yml does not exist")
 
-    if network_type in network:
-        if network[network_type]:
-            for name, config in network[network_type].items(): 
-                yield name, config
+    for name, config in network.items():
+        if network_name == name:
+            return config
+
+    raise IOError("no config for network <{}> available".format(network_name)) 
