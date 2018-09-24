@@ -65,7 +65,7 @@ $ pyg fetch channels
 Ingest youtube data to elasticsearch
 
 ```
-pyg ingest channels
+$ pyg ingest channels
 ```
 
 

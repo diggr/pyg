@@ -3,8 +3,9 @@ from setuptools import setup
 setup(
     name="pyg",
     version="0.1",
-    py_modules=["tool"],
+    py_modules=["youtubetools"],
     install_requires=[
+        "provit",
         "Click", 
         "networkx", 
         "requests", 

@@ -113,13 +113,9 @@ def load_elasticsearch_config():
 
     try:
         es_config = config["elasticsearch"]
-        user = es_config["user"]
         url = es_config["url"]
-        password = es_config["password"]
         prefix = es_config["prefix"]
-
-        if user == "" and password == "":
-            ES_SERVER = url
+        ES_SERVER = url
         
         if prefix == "":
             raise IOError("es index prefix needed in config.yml")
@@ -129,7 +125,7 @@ def load_elasticsearch_config():
     except:
         raise IOError("config.yml not valid")
 
-    pass
+
 
 def fetch_queue():
     """
