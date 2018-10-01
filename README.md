@@ -69,7 +69,19 @@ $ pyg ingest channels
 ```
 
 
-### Build recommended videos network
+Generate Diff file 
+
+```
+$ pyg update channels
+```
+
+The update script checks for each video in the channel if the comment count changed. If so, the current video data will be fetched from the Youtube API.
+New videos will also fetched.
+
+A Diff file for each channel in the form of <chanel_name>_timestamp.zip will be created in the data folder.
+
+
+### Build recommended videos and related channel networks
 
 Add network configuration to network.yml
 
@@ -79,12 +91,25 @@ darksouls:
   type: 'videos'
   q: 'dark souls'
   depth: 2
+
+
+mgs:
+  type: 'channels'
+  seeds:
+  - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
+  - 'user/pythonselkanHD'
+  featured: false
+  depth: 5  
 ```
 
 Then use the pyg network command to build the network graphml file
 
 ```
 $ pyg network darksouls
+```
+
+```
+& pyg network mgs
 ```
 
 
