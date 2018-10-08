@@ -134,7 +134,7 @@ $ pyg network darksouls
 ```
 
 ```
-& pyg network mgs
+$ pyg network mgs
 ```
 
 ### Run pyg through a proxy server
