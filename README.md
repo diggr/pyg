@@ -22,7 +22,6 @@ pip install .
 
 - Python 3.6
 - Youtube Data API Key
-- `pip3 install -r requirements.txt`
 
 
 ## Usage:
@@ -136,6 +135,23 @@ $ pyg network darksouls
 
 ```
 & pyg network mgs
+```
+
+### Run pyg through a proxy server
+
+List proxy in config.yml
+
+```
+...
+network:
+  proxy: 123.4.5.6:7890
+...
+```
+
+Use proxy option
+
+```
+$ pyg --proxy network darksouls
 ```
 
 
