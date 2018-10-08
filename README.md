@@ -22,6 +22,7 @@ pip install .
 
 - Python 3.6
 - Youtube Data API Key
+- `pip3 install -r requirements.txt`
 
 
 ## Usage:
@@ -103,7 +104,7 @@ $ pyg update channels
 The update script checks for each video in the channel if the comment count changed. If so, the current video data will be fetched from the Youtube API.
 New videos will also fetched.
 
-A Diff file for each channel in the form of <chanel_name>_timestamp.zip will be created in the data folder.
+A Diff file for each channel in the form of <channel_name>_timestamp.zip will be created in the data folder.
 
 
 ### Build recommended videos and related channel networks
