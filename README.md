@@ -43,6 +43,31 @@ Open config.yml and add:
 * Url with user name and password of the elasticsearch server / prefix for the video/comment index (can be left blank if you don't intend of exporting data to ES)
 * Project name (not used at the moment)
 
+
+### Command line interface
+
+```
+pyg
+
+    --proxy/--no-proxy (default: no-proxy)
+
+    init
+
+    fetch
+        <group name>
+
+    update
+        <group name>
+
+    network
+        <network name>
+        --api/--no-api (default: api)
+
+    es
+        <group name>
+        <index prefix>
+```
+
 ### Fetch youtube data
 
 Add fetch items (channels or video lists) to fetch.yml
