@@ -6,6 +6,30 @@ from youtubetools.channel_network import RelatedChannelsNetwork
 from youtubetools.video_recommendation_network import VideoRecommendationNetwork
 from youtubetools.elasticsearch_ingest import elasticsearch_ingest
 
+"""
+Pyg command line tool
+
+pyg
+
+    --proxy/--no-proxy (default: no-proxy)
+
+    init
+
+    fetch
+        <group name>
+
+    update
+        <group name>
+
+    network
+        <network name>
+        --api/--no-api (default: api)
+
+    es
+        <group name>
+        <index prefix>
+
+"""
 
 @click.group()
 @click.option("--proxy/--no-proxy", default=False)
@@ -78,7 +102,7 @@ def network(ctx, api, network_name):
 @cli.command()
 @click.argument("group", default="channels")
 @click.argument("prefix", default="")
-def ingest(group, prefix):
+def es(group, prefix):
     elasticsearch_ingest(group, prefix)
 
 @cli.command()
