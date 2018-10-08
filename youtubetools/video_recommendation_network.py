@@ -34,6 +34,44 @@ YOUTUBE_VIDEO = "https://www.youtube.com/watch?v={id}"
 
 class VideoRecommendationNetwork(object):
 
+    def _get_related_videos_api(self, video_id):
+        related_videos = []
+        next_page = None
+        while True:
+
+            related = self.youtube.search().list(
+                type="video",
+                part="snippet",
+                maxResults=50,
+                relatedToVideoId=video_id,
+                pageToken=next_page
+            ).execute()
+
+            related_videos += related["items"]
+            if "nextPageToken" in related and len(related["items"]) > 0:
+                next_page = related["nextPageToken"]
+            else:
+                break 
+        return [ x["id"]["videoId"] for x in related_videos ] 
+
+
+    def _get_recommended_videos_api(self, video_id, depth):
+        if depth > 0:
+
+            self.videos.add(video_id)
+
+            if video_id not in self.edgelist:
+                recommended_videos = self._get_related_videos_api(video_id)
+            else:
+                recommended_videos = self.edgelist[video_id]
+            self.edgelist[video_id] = recommended_videos
+
+            for recommended_video in recommended_videos:
+                self.videos.add(recommended_video)
+                self._get_recommended_videos_api(recommended_video, depth-1)
+
+
+
     def _extract_video_ids(self, video_id):
         """
         extracts ids from recommended video list on a videos youtube page
@@ -141,7 +179,8 @@ class VideoRecommendationNetwork(object):
         prov.add_primary_source("youtube", url="https://www.youtube.com")
         prov.save()
 
-    def __init__(self, name=None, q=None, seeds=None, depth=2):
+
+    def __init__(self, name=None, q=None, seeds=None, depth=2, api=True):
 
         CF = load_config()
 
@@ -150,10 +189,12 @@ class VideoRecommendationNetwork(object):
         self.name = name
         self.depth = depth
 
+        # initiate output directory
         self.out_dir = os.path.join(CF["PROJECT_DIR"], OUT_DIR)
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
 
+        # get seed videos
         if q:
             self.q = q
             results = self.youtube.search().list(
@@ -170,8 +211,12 @@ class VideoRecommendationNetwork(object):
         self.metadata = defaultdict(dict)
 
         print("fetching related video data and building edgelist")
-        for seed in tqdm(self.seeds):
-            self._get_recommended_videos(seed, depth)
+        if not api:
+            for seed in tqdm(self.seeds):
+                self._get_recommended_videos(seed, depth)
+        else:
+            for seed in tqdm(self.seeds):
+                self._get_recommended_videos_api(seed, depth)
 
         print("get video metadata")
         self._get_metadata()

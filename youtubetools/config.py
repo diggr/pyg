@@ -9,6 +9,8 @@ Initializes and loads project yaml files:
 import yaml
 import os
 import json
+import socks
+import socket
 
 __VERSION__ = 0.3
 
@@ -55,6 +57,9 @@ def init_project():
             "name": "pyg_project",
             "dir": "data"
         },
+        "network": {
+            "proxy": ""
+        },
         "youtube": {
             "api-key": ""
         },
@@ -85,6 +90,7 @@ def load_config():
         PROJECT = config["project"]
         PROJECT["dir"]
         YOUTUBE_API_KEY = config["youtube"]["api-key"]
+        PROXY = config["network"]["proxy"]
     except:
         PROJECT = {}
         PROJECT["dir"] = ""
@@ -97,7 +103,8 @@ def load_config():
         "PROJECT_DIR": PROJECT["dir"],
         "YOUTUBE_API_KEY": YOUTUBE_API_KEY,
         "ADDON_DIR": os.path.join(PROJECT["dir"], ADDON_DIR),
-        "PROJECT_NAME": PROJECT["name"]
+        "PROJECT_NAME": PROJECT["name"],
+        "PROXY": PROXY
     }
     return config
 
@@ -177,3 +184,8 @@ def network_config(network_name):
             return config
 
     raise IOError("no config for network <{}> available".format(network_name)) 
+
+def set_proxy(proxy):
+    addr, port = proxy.split(":")
+    socks.setdefaultproxy(proxy_type=socks.PROXY_TYPE_SOCKS5, addr=addr, port=int(port))
+    socket.socket = socks.socksocket

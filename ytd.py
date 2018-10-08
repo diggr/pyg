@@ -1,6 +1,6 @@
 import click
 import os
-from youtubetools.config import init_project, load_config, fetch_config, network_config
+from youtubetools.config import init_project, load_config, fetch_config, network_config, set_proxy
 from youtubetools.fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetcher
 from youtubetools.channel_network import RelatedChannelsNetwork
 from youtubetools.video_recommendation_network import VideoRecommendationNetwork
@@ -8,10 +8,18 @@ from youtubetools.elasticsearch_ingest import elasticsearch_ingest
 
 
 @click.group()
-def cli():
+@click.option("--proxy/--no-proxy", default=False)
+@click.pass_context
+def cli(ctx, proxy):
     """
     pyg command line tool
     """
+    if proxy:
+        c = load_config()
+        url = c["PROXY"]
+        ctx.obj = { "PROXY": url}
+        #ctx.obj["PROXY"] = "abc"
+    #click.echo(proxy)
 
 @cli.command()
 def init():
@@ -38,8 +46,13 @@ def update(group):
 
 
 @cli.command()
+@click.option("--api/--no-api", default=True)
 @click.argument("network_name")
-def network(network_name):
+@click.pass_context
+def network(ctx, api, network_name):
+    if ctx.obj:
+        click.echo("set proxy to: {}".format(ctx.obj["PROXY"]))
+        set_proxy(ctx.obj["PROXY"])
     config = network_config(network_name)
     type_ = config["type"]
     print("\t buliding network <{}>".format(network_name))
@@ -50,6 +63,7 @@ def network(network_name):
             name=network_name,
             q=q, 
             seeds=seeds, 
+            api=api,
             depth=config["depth"])
         vrn.to_graphml()
 
@@ -67,5 +81,9 @@ def network(network_name):
 def ingest(group, prefix):
     elasticsearch_ingest(group, prefix)
 
-if __name__ == "__main__":
-    cli()
+@cli.command()
+def test():
+    click.echo("test")
+
+#if __name__ == "__main__":
+#    cli(obj={})
