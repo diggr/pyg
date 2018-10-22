@@ -23,6 +23,7 @@ NETWORK_TEMPLATE = """
 #   depth: 1
 #
 # yy_thegift:
+#   type: 'videos
 #   seeds:
 #   - 'Fg1EvKUhZw4'
 #   depth: 3

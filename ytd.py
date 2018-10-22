@@ -5,6 +5,7 @@ from youtubetools.fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetc
 from youtubetools.channel_network import RelatedChannelsNetwork
 from youtubetools.video_recommendation_network import VideoRecommendationNetwork
 from youtubetools.elasticsearch_ingest import elasticsearch_ingest
+from youtubetools.analysis import UserStatsBuilder
 
 """
 Pyg command line tool
@@ -24,6 +25,9 @@ pyg
     network
         <network name>
         --api/--no-api (default: api)
+    
+    analysis
+        <analysis type>
 
     es
         <group name>
@@ -98,6 +102,13 @@ def network(ctx, api, network_name):
             depth=config["depth"], 
             featured=config["featured"])
         cn.to_graphml()
+
+
+@cli.command()
+@click.argument("analysis_type", default="channels")
+def analysis(analysis_type):
+    if analysis_type == "user-stats":
+        stats = UserStatsBuilder()
 
 @cli.command()
 @click.argument("group", default="channels")
