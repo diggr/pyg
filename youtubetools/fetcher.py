@@ -60,7 +60,6 @@ class YoutubeFetcher(object):
 
         CF = load_config()
         self.youtube =  build('youtube', 'v3', developerKey=CF["YOUTUBE_API_KEY"])
-        #self.youtube = build("youtube", "v3", "developerKey=AIzaSyCGhgLFUtvUyYRKnM913vFRY3paBLCqW4c")
 
     def _init_archive(self, name, type_):
         """
@@ -73,13 +72,6 @@ class YoutubeFetcher(object):
 
         self.filepath = os.path.join(self._dir, "{}.zip".format(name))
         self._archive = ZipArchive(self.filepath)
-
-
-
-        # if os.path.exists(self.filepath):
-        #     self._zf = zipfile.ZipFile(self.filepath, "a", zipfile.ZIP_DEFLATED)
-        # else:
-        #     self._zf = zipfile.ZipFile(self.filepath, "w", zipfile.ZIP_DEFLATED)
 
     def _load_video_metadata(self, video_id):
         video_data = self.youtube.videos().list(

@@ -262,12 +262,6 @@ class Video(object):
         """
         caption_filepath = os.path.join(VIDEO_CAPTIONS_DIR, "{}.{}".format(self.id, filetype))
         return self._archive.get(caption_filepath)
-        # with zipfile.ZipFile(self.channel_file) as zf:
-        #     try:
-        #         caption = zf.read(caption_filepath)
-        #         return caption.decode()
-        #     except:
-        #         return None
 
     def comments_by_user(self, user):
         for comment in self.comments:

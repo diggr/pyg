@@ -1,5 +1,18 @@
 """
 Build user stats dataset from pyg channel directory
+
+For each user, the following statistics and data are prepared:
+- total_comments
+- text_len_average
+- text_len_median
+- first_comment
+- last_comment
+- total_replies
+- replies_per_comments
+- comment_count_rank
+- reply_count_rank
+- channel_stats (comments per channel, first comment in channel)
+
 """
 
 import os

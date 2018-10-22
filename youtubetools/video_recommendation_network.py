@@ -137,16 +137,11 @@ class VideoRecommendationNetwork(object):
         saves video network as graphml file
         """
         if self.name:
-            filename = "{}_{}".format(self.name, datetime.now().isoformat())
+            filename = "{}_{}".format(self.name, datetime.now().isoformat()[:19].replace(":","_"))
         else:
-            filename = "{}_{}".format(self.seeds[0], datetime.now().isoformat())
+            filename = "{}_{}".format(self.seeds[0], datetime.now().isoformat()[:19].replace(":","_"))
 
         filepath =  os.path.join(self.out_dir, "{}.graphml".format(filename))
-        # if not filepath:
-        #     if self.name:
-        #         filepath = os.path.join(self.out_dir, "{}.graphml".format(filename))
-        #     else:
-        #         filepath = os.path.join(self.out_dir, "{}.graphml".format(self.seeds[0]))
 
         G = nx.DiGraph()
 

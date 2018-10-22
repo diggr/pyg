@@ -20,7 +20,6 @@ y = z.get("y.json")
 
 import zipfile
 import json
-import subprocess
 import os
 from pit.prov import Provenance
 

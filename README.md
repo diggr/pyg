@@ -63,6 +63,9 @@ pyg
         <network name>
         --api/--no-api (default: api)
 
+    analysis
+        user-stats
+
     es
         <group name>
         <index prefix>

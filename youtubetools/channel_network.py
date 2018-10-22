@@ -136,7 +136,7 @@ class RelatedChannelsNetwork(object):
         Creates graphml file from related channel network, including channel stats for nodes
         """
         if self.name:
-            filename = "{}_{}".format(self.name, datetime.now().isoformat())
+            filename = "{}_{}".format(self.name, datetime.now().isoformat()[:19].replace(":","_"))
             filepath = os.path.join(self.out_dir, "{}.graphml".format(filename))
         else: 
             seed_title = self.channel_metadata[self.seeds[0]]["title"]
