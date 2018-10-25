@@ -42,17 +42,8 @@ import zipfile
 from tqdm import tqdm
 from collections import Counter, defaultdict
 
-from .config import load_config
+from .config import load_config, VIDEO_CAPTIONS_DIR, VIDEO_COMMENTS_DIR, VIDEO_METADATA_DIR, PLAYLISTS_DIR
 from .zip_archive import ZipArchive
-
-# directories
-DATA_DIR = "data"
-VIDEO_METADATA_DIR = "video_meta"
-VIDEO_CAPTIONS_DIR = "video_captions"
-VIDEO_COMMENTS_DIR = "video_comments"
-PLAYLISTS_DIR = "playlists"
-
-
 
 class YoutubeArchiveReader(object):
 

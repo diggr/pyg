@@ -46,6 +46,12 @@ FETCH_TEMPLATE = """
 DATA_DIR = "data"
 ADDON_DIR = "addon"
 
+#ARCHIVE DIRS
+VIDEO_CAPTIONS_DIR = "video_captions"
+VIDEO_COMMENTS_DIR = "video_comments"
+VIDEO_METADATA_DIR = "video_meta"
+PLAYLISTS_DIR = "playlists"
+
 def init_project():
     """
     Creates templates for config.yml, fetch.yml, network.yml
