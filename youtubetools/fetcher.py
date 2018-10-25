@@ -219,7 +219,7 @@ class VideoFetcher(YoutubeFetcher):
     Fetches video data and saves them into a zip archive.
     """
 
-    def __init__(self, video_ids, project_name="video_collection"):
+    def __init__(self, video_ids, project_name="video_collection", comments=True, captions=True):
         super().__init__()
         #self.youtube =  build('youtube', 'v3', developerKey="AIzaSyCGhgLFUtvUyYRKnM913vFRY3paBLCqW4c")
         self._init_archive(project_name, type_="videos")
@@ -228,8 +228,10 @@ class VideoFetcher(YoutubeFetcher):
 
         for video_id in tqdm(video_ids):
             self._fetch_video_metadata(video_id)
-            self._fetch_video_comments(video_id)
-            self._fetch_video_captions(video_id)
+            if comments:
+                self._fetch_video_comments(video_id)
+            if cpations:
+                self._fetch_video_captions(video_id)
 
         self._archive.add_provenance (
             agent=PROV_AGENT, 

@@ -36,11 +36,16 @@ class ZipArchive(zipfile.ZipFile):
         """
         Add data (str, data or list) to zip file.
         """
-        if isinstance(data, list) or isinstance(data, dict):
-            data = json.dumps(data, indent=4)
-        elif not isinstance(data, str):
-            raise TypeError("Ziparchive only supports datatypes string, list and dict")
-        self.writestr(filepath, data)    
+
+        if not self.contains(filepath):
+
+            if isinstance(data, list) or isinstance(data, dict):
+                data = json.dumps(data, indent=4)
+            elif not isinstance(data, str):
+                raise TypeError("Ziparchive only supports datatypes string, list and dict")
+            self.writestr(filepath, data)    
+        else:
+            print("file <{}> already in fetched".format(filepath))
     
     # def remove(self, filepath):
     #     """
@@ -87,3 +92,9 @@ class ZipArchive(zipfile.ZipFile):
         for filename in self:
             if filename.startswith(directory+"/"):
                 yield filename[len(directory)+1:]
+    
+    def __contains__(self, directory):
+        for filename in self:
+            if filename.startswith(directory+"/"):
+                return True
+        return False

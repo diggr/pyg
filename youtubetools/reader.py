@@ -198,48 +198,50 @@ class Video(object):
         self.comment_users = []
         self.comments = []
 
-        comments_filepath = os.path.join(VIDEO_COMMENTS_DIR, "{}_threads.json".format(self.id))
-        replies_filepath = os.path.join(VIDEO_COMMENTS_DIR, "{}_comments.json".format(self.id))
-        try:
-            comments_data = archive.get(comments_filepath)
-        except:
-            print("no comments available for <{}>".format(self.id))
-            return
-        
-        replies_data = archive.get(replies_filepath)
-        
-        for post, reply_count in self._all_comments(comments_data, replies_data):
-            id_ = post["id"]
-            author_name = post["snippet"]["authorDisplayName"]
-            text = post["snippet"]["textOriginal"]
-            timestamp = post["snippet"]["publishedAt"]
-            likes = post["snippet"]["likeCount"]
-            if reply_count > 0 or "." in id_:
-                comment_thread = id_.split(".")[0].strip()
-            else:
-                comment_thread = None
-            if "parentId" in post["snippet"]:
-                parent_id = post["snippet"]["parentId"]
-            else:
-                parent_id = None
+        if VIDEO_COMMENTS_DIR in self._archive:
 
-            if "authorChannelId" in post["snippet"]:
-                author_id =  post["snippet"]["authorChannelId"]["value"]
-            else:
-                print("NO AUTHOR CHANNEL ID")
-                author_id = None
+            comments_filepath = os.path.join(VIDEO_COMMENTS_DIR, "{}_threads.json".format(self.id))
+            replies_filepath = os.path.join(VIDEO_COMMENTS_DIR, "{}_comments.json".format(self.id))
+            try:
+                comments_data = archive.get(comments_filepath)
+            except:
+                print("no comments available for <{}>".format(self.id))
+                return
+            
+            replies_data = archive.get(replies_filepath)
+            
+            for post, reply_count in self._all_comments(comments_data, replies_data):
+                id_ = post["id"]
+                author_name = post["snippet"]["authorDisplayName"]
+                text = post["snippet"]["textOriginal"]
+                timestamp = post["snippet"]["publishedAt"]
+                likes = post["snippet"]["likeCount"]
+                if reply_count > 0 or "." in id_:
+                    comment_thread = id_.split(".")[0].strip()
+                else:
+                    comment_thread = None
+                if "parentId" in post["snippet"]:
+                    parent_id = post["snippet"]["parentId"]
+                else:
+                    parent_id = None
 
-            self.comments.append({
-                "id": id_,
-                "author": author_name,
-                "author_id":author_id, 
-                "text": text,
-                "parent_id": parent_id,
-                "reply_count": reply_count,
-                "comment_thread": comment_thread,
-                "timestamp": timestamp,
-                "likes": likes
-            })
+                if "authorChannelId" in post["snippet"]:
+                    author_id =  post["snippet"]["authorChannelId"]["value"]
+                else:
+                    print("NO AUTHOR CHANNEL ID")
+                    author_id = None
+
+                self.comments.append({
+                    "id": id_,
+                    "author": author_name,
+                    "author_id":author_id, 
+                    "text": text,
+                    "parent_id": parent_id,
+                    "reply_count": reply_count,
+                    "comment_thread": comment_thread,
+                    "timestamp": timestamp,
+                    "likes": likes
+                })
         self.comment_users = [x["author"] for x in self.comments]
 
     def comment_stats(self):
@@ -260,8 +262,11 @@ class Video(object):
         """
         Loads caption (if available) for video.
         """
-        caption_filepath = os.path.join(VIDEO_CAPTIONS_DIR, "{}.{}".format(self.id, filetype))
-        return self._archive.get(caption_filepath)
+        if VIDEO_CAPTIONS_DIR in self._archive:
+            caption_filepath = os.path.join(VIDEO_CAPTIONS_DIR, "{}.{}".format(self.id, filetype))
+            return self._archive.get(caption_filepath)
+        else:
+            return None
 
     def comments_by_user(self, user):
         for comment in self.comments:

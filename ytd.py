@@ -56,13 +56,15 @@ def init():
 
 @cli.command()
 @click.argument("group")
-def fetch(group):
+@click.option("--comments/--no-comments", default=True)
+@click.option("--captions/--no-captions", default=True)
+def fetch(group, comments, captions):
     fetch_list = fetch_config(group)
     if group == "channels":
         for channel in fetch_list:
-            ChannelFetcher(channel=channel)
+            ChannelFetcher(channel=channel, captions=captions, comments=comments)
     else:
-        VideoFetcher(fetch_list, group)
+        VideoFetcher(fetch_list, group, captions=captions, comments=comments)
 
 @cli.command()
 @click.argument("group")
