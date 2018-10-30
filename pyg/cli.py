@@ -1,11 +1,11 @@
 import click
 import os
-from youtubetools.config import init_project, load_config, fetch_config, network_config, set_proxy
-from youtubetools.fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetcher
-from youtubetools.channel_network import RelatedChannelsNetwork
-from youtubetools.video_recommendation_network import VideoRecommendationNetwork
-from youtubetools.elasticsearch_ingest import elasticsearch_ingest
-from youtubetools.analysis import UserStatsBuilder
+from .config import init_project, load_config, fetch_config, network_config, set_proxy
+from .fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetcher
+from .channel_network import RelatedChannelsNetwork
+from .video_recommendation_network import VideoRecommendationNetwork
+from .elasticsearch_ingest import elasticsearch_ingest
+from .analysis import UserStatsBuilder
 
 """
 Pyg command line tool

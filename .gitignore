@@ -4,5 +4,6 @@ __pycache__
 pit/__pycache__
 youtube/__pycache__
 youtube/pit/__pycache__
-pyg.egg-info
+pyg.egg-info/
+provit.egg-info/
 pit
