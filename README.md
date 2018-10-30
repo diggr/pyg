@@ -166,4 +166,4 @@ $ pyg --proxy network darksouls
 team@diggr.link
 
 ## Lincence:
-
+GPL-3.0
