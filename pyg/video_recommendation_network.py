@@ -127,7 +127,7 @@ class VideoRecommendationNetwork(object):
                     "views": self._get_value_or_0(item, "viewCount"),
                     "likes": self._get_value_or_0(item, "likeCount"),
                     "dislikes": self._get_value_or_0(item, "dislikeCount"),
-                    "comments": self._get_value_or_0(item, "CommentCount")
+                    "comments": self._get_value_or_0(item, "commentCount")
                 }
             else:
                 print(video_id)

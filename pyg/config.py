@@ -186,6 +186,8 @@ def network_config(network_name):
     except:
         raise IOError("network.yml does not exist")
 
+    #print(network)
+
     for name, config in network.items():
         if network_name == name:
             return config
