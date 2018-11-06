@@ -71,7 +71,13 @@ class YoutubeFetcher(object):
             self._dir = self.VIDEOS
 
         self.filepath = os.path.join(self._dir, "{}.zip".format(name))
-        self._archive = ZipArchive(self.filepath)
+        if not self._reset and os.path.exists(self.filepath):
+            return True
+        else:
+            self._archive = ZipArchive(self.filepath)
+            return False
+
+
 
     def _load_video_metadata(self, video_id):
         video_data = self.youtube.videos().list(
@@ -246,13 +252,14 @@ class ChannelFetcher(YoutubeFetcher):
     Fetch channel related data by calling the corresponding methods.
     """
 
-    def __init__(self, channel, captions=True, comments=True):
+    def __init__(self, channel, captions=True, comments=True, reset=False):
         #self.youtube =  build('youtube', 'v3', developerKey="AIzaSyCGhgLFUtvUyYRKnM913vFRY3paBLCqW4c")
 
         super().__init__()
 
         self._captions = captions
         self._comments = comments
+        self._reset = reset
 
         #get channel id
         if "channel/" in channel:
@@ -273,15 +280,17 @@ class ChannelFetcher(YoutubeFetcher):
         else:
 
             self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
-            self._init_archive(self.channel_title, type_="channels")
-            self._fetch_channel_comments()
-            self._fetch_playlists()
-            self._fetch_channel()
+            skip = self._init_archive(self.channel_title, type_="channels")
+            print(skip)
+            if not skip:
+                self._fetch_channel_comments()
+                self._fetch_playlists()
+                self._fetch_channel()
 
-            self._archive.add_provenance(
-                agent=PROV_AGENT, 
-                activity="fetch_channel", 
-                description="Youtube video/comment data for channel <{}>".format(self.channel_title))
+                self._archive.add_provenance(
+                    agent=PROV_AGENT, 
+                    activity="fetch_channel", 
+                    description="Youtube video/comment data for channel <{}>".format(self.channel_title))
 
 
     def _fetch_channel(self):

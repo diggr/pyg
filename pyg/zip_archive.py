@@ -45,7 +45,7 @@ class ZipArchive(zipfile.ZipFile):
                 raise TypeError("Ziparchive only supports datatypes string, list and dict")
             self.writestr(filepath, data)    
         else:
-            print("file <{}> already in fetchedif filename.startswith(directory+"/"):".format(filepath))
+            print("file <{}> already in fetched".format(filepath))
     
     # def remove(self, filepath):
     #     """
