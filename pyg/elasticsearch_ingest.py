@@ -179,41 +179,39 @@ def elasticsearch_ingest(group, costum_prefix=""):
             }
             res = es.index(index=video_index, doc_type=VIDEO_DOC_TYPE, id=video.id, body=doc)
 
-            if VIDEO_COMMENTS_DIR in archive:
+            comments_doc = []
+            for comment in video.comments:
+                top_level_comment = True if "." in comment["id"] else False
 
-                comments_doc = []
-                for comment in video.comments:
-                    top_level_comment = True if "." in comment["id"] else False
+                if comment["text"]:
+                    text_len = len(comment["text"].split())
+                else:
+                    text_len = 0
 
-                    if comment["text"]:
-                        text_len = len(comment["text"].split())
-                    else:
-                        text_len = 0
+                classifiers = get_classifiers(comment_classfifier, comment["id"])
 
-                    classifiers = get_classifiers(comment_classfifier, comment["id"])
-
-                    comments_doc.append({
-                        "_index": comment_index,
-                        "_type": COMMENT_DOC_TYPE,
-                        "_id": comment["id"],
-                        "_source": {
-                            "video_id": video.id,
-                            "channel": channel, 
-                            "video_title": video.title,
-                            "video_playlists": video_playlists,
-                            "classifiers": classifiers,
-                            "user": comment["author"],
-                            "user_id": comment["author_id"],
-                            "text": comment["text"],
-                            "text_len": text_len,
-                            "reply_count": comment["reply_count"],
-                            "comment_thread": comment["comment_thread"],
-                            "timestamp": comment["timestamp"],
-                            "likes": comment["likes"],
-                            "top_level_comment": top_level_comment
-                        }
-                    })
-                helpers.bulk(es, comments_doc)
+                comments_doc.append({
+                    "_index": comment_index,
+                    "_type": COMMENT_DOC_TYPE,
+                    "_id": comment["id"],
+                    "_source": {
+                        "video_id": video.id,
+                        "channel": channel, 
+                        "video_title": video.title,
+                        "video_playlists": video_playlists,
+                        "classifiers": classifiers,
+                        "user": comment["author"],
+                        "user_id": comment["author_id"],
+                        "text": comment["text"],
+                        "text_len": text_len,
+                        "reply_count": comment["reply_count"],
+                        "comment_thread": comment["comment_thread"],
+                        "timestamp": comment["timestamp"],
+                        "likes": comment["likes"],
+                        "top_level_comment": top_level_comment
+                    }
+                })
+            helpers.bulk(es, comments_doc)
     
 
 
