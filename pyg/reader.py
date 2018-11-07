@@ -60,12 +60,7 @@ class YoutubeArchiveReader(object):
             video = Video(archive, video_id)
             self.videos[video.id] = video
 
-
-        #pl = self._archive.get("playlists.json")
-        #print(pl)
-
         if self._archive.contains("playlists.json"):
-            #print("build playlist")
             self._load_playlists()
 
 
@@ -279,12 +274,10 @@ class Playlist(object):
     def _load_video_ids(self):
         playlist_filepath = os.path.join(PLAYLISTS_DIR, "{}.json".format(self.id))
         playlist_data = self._archive.get(playlist_filepath)
-        # playlist_data = json.loads(channel_zip.read(playlist_filepath).decode())
         self.video_ids = [ x["snippet"]["resourceId"]["videoId"] for x in playlist_data ]
 
 
     def __init__(self, id_, title, archive):
-        #self.playlist_dir = playlist_dir
         self._archive = archive
         self.id = id_
         self.title = title

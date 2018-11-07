@@ -53,17 +53,15 @@ class RelatedChannelsNetwork(object):
         related_channels_header = [ "Ähnliche Kanäle"]
         
         for related_channels_div in soup.find_all("div", {"class": "branded-page-related-channels"}):
-            #print(related_channels_div.text)
+
             header = related_channels_div.find("h2").text.strip()
             #skip popular channel list
- 
             if header in popular_channels_header:
                 continue
             #if featured=False, skip featurec channel list
             if not self.featured and header not in related_channels_header:
                 continue 
             for related_channel  in related_channels_div("li"):
-                #print(related_channel.text)
                 channel_link = related_channel.find("a")
                 slug = channel_link["href"]
                 if "user" in slug:
@@ -80,7 +78,6 @@ class RelatedChannelsNetwork(object):
         related_channel_list = set()
         res = requests.get(YOUTUBE_CHANNEL.format(id=channel_id))
         soup = BeautifulSoup(res.text, "html.parser")
-        #print(soup.text) 
         for channel_id in self._extract_related_channels(soup):
             related_channel_list.add(channel_id)
 
@@ -98,14 +95,11 @@ class RelatedChannelsNetwork(object):
                 related_channel_list = self._fetch_related_channels(seed)
             else:
                 related_channel_list = self.channel_relations[seed]
-            #print(related_channel_list)
 
-            #print(len(related_channel_list))
             self.channel_relations[seed] = related_channel_list
             self.channel_edgelist[seed] = related_channel_list
 
             for channel_id in list(set(related_channel_list)):
-                #print("calling _get_related_channels with <{}> and <{}>".format(channel_id, depth-1))
                 self._get_related_channels(channel_id, depth-1)
                 self.channel_list.add(channel_id)           
 

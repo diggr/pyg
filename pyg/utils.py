@@ -1,6 +1,9 @@
 import re
 
 def get_channel_id(youtube, user_name):
+    """
+    Looks up user id for ::user_name:: on the youtube api 
+    """
     meta = youtube.channels().list(
         part="id,snippet",
         forUsername=user_name,
