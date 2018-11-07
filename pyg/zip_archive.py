@@ -1,7 +1,9 @@
 """
-Simple Zip archvie.
+Simple Zip archive.
 Writes json/text files into zip file.
 Reads files from zip file
+
+Deleting files in the archive is not supported
 
 Usage
 
@@ -47,15 +49,6 @@ class ZipArchive(zipfile.ZipFile):
         else:
             print("file <{}> already in fetched".format(filepath))
     
-    # def remove(self, filepath):
-    #     """
-    #     very ugly hack, find another way!
-    #     only works under linux
-    #     removes file from zip archive
-    #     """
-    #     cmd = ['zip', '-d', self.filename, filepath]
-    #     subprocess.check_call(cmd)
-
     def get(self, filepath):
         """
         Reads (text-)file from zip file.

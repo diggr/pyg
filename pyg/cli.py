@@ -18,6 +18,9 @@ pyg
 
     fetch
         <group name>
+        --comments/--no-comments (fetch comments; default: comments)
+        --captions/--no-captions (fetch captoins; default: captoins)
+        --skip/--no-skip (skip already fetched channels: default: skip)
 
     update
         <group name>
@@ -58,11 +61,12 @@ def init():
 @click.argument("group")
 @click.option("--comments/--no-comments", default=True)
 @click.option("--captions/--no-captions", default=True)
-def fetch(group, comments, captions):
+@click.option("--skip/--no-skip", default=True)
+def fetch(group, comments, captions, skip):
     fetch_list = fetch_config(group)
     if group == "channels":
         for channel in fetch_list:
-            ChannelFetcher(channel=channel, captions=captions, comments=comments)
+            ChannelFetcher(channel=channel, captions=captions, comments=comments, skip=skip)
     else:
         VideoFetcher(fetch_list, group, captions=captions, comments=comments)
 

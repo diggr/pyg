@@ -31,35 +31,41 @@ from apiclient.discovery import build
 from .zip_archive import ZipArchive
 from .reader import YoutubeArchiveReader
 from .utils import get_channel_id, remove_html
-from .config import load_config, PROV_AGENT
+from .config import load_config, PROV_AGENT, DATA_DIR
 
 YOUTUBE_URL = "https://www.youtube.com/watch?v={id}"
 
 class YoutubeFetcher(object):
+    """
+    Fetcher base class:
+    Contains function for initialising directories and fetching video data
+    """
+
     # ARCHIVE DIRECTORIES
-    DATA = "data"
-    CHANNELS = os.path.join(DATA, "channels")
-    VIDEOS = os.path.join(DATA, "videos")
+    CHANNELS = os.path.join(DATA_DIR, "channels")
+    VIDEOS = os.path.join(DATA_DIR, "videos")
 
     VCAPTIONS = "video_captions"
     VMETA = "video_meta"
     VCOMMENTS = "video_comments"
     PLAYLISTS = "playlists"
 
-    def _init_dirs(self):
-        if not os.path.exists(self.DATA):
-            os.makedirs(self.DATA)
+
+    def __init__(self):
+        """
+        Initialize directories and set up youtube api
+        """
+
+        if not os.path.exists(self.DATA_DIR):
+            os.makedirs(self.DATA_DIR)
         if not os.path.exists(self.CHANNELS):
             os.makedirs(self.CHANNELS)
         if not os.path.exists(self.VIDEOS):
             os.makedirs(self.VIDEOS)
 
-    def __init__(self):
-
-        self._init_dirs()
-
         CF = load_config()
         self.youtube =  build('youtube', 'v3', developerKey=CF["YOUTUBE_API_KEY"])
+
 
     def _init_archive(self, name, type_):
         """
@@ -71,33 +77,36 @@ class YoutubeFetcher(object):
             self._dir = self.VIDEOS
 
         self.filepath = os.path.join(self._dir, "{}.zip".format(name))
-        if not self._reset and os.path.exists(self.filepath):
+        if self._skip and os.path.exists(self.filepath):
             return True
         else:
             self._archive = ZipArchive(self.filepath)
             return False
 
 
-
     def _load_video_metadata(self, video_id):
+        """
+        Load video metadata from youtube api
+        """
         video_data = self.youtube.videos().list(
             part="id,recordingDetails,snippet,statistics,status,topicDetails,contentDetails",
             id=video_id
             ).execute()       
         return video_data
 
+
     def _fetch_video_metadata(self, video_id):
         """
         Fetches metadata for a youtube video from the youtube api
         """
 
+        #check if metadata already in archive
         metadata_filepath = os.path.join(self.VMETA, "{}.json".format(video_id))
         if metadata_filepath in self._archive:
             print(" ... Metadata for video '{}' already fetched".format(video_id))
             return
 
         video_data = self._load_video_metadata(video_id)
-
         self._archive.add(metadata_filepath, video_data)
 
     def _fetch_video_comments(self, video_id):
@@ -105,6 +114,7 @@ class YoutubeFetcher(object):
         Fetches comments (top level comments + replies) for a youtube video 
         from the youtube api.
         """
+
         threads_filepath = os.path.join(self.VCOMMENTS, "{}_threads.json".format(video_id))
         thread_comments_filepath =  os.path.join(self.VCOMMENTS, "{}_comments.json".format(video_id))
 
@@ -252,14 +262,14 @@ class ChannelFetcher(YoutubeFetcher):
     Fetch channel related data by calling the corresponding methods.
     """
 
-    def __init__(self, channel, captions=True, comments=True, reset=False):
+    def __init__(self, channel, captions=True, comments=True, skip=True):
         #self.youtube =  build('youtube', 'v3', developerKey="AIzaSyCGhgLFUtvUyYRKnM913vFRY3paBLCqW4c")
 
         super().__init__()
 
         self._captions = captions
         self._comments = comments
-        self._reset = reset
+        self._skip = skip
 
         #get channel id
         if "channel/" in channel:
@@ -281,7 +291,7 @@ class ChannelFetcher(YoutubeFetcher):
 
             self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
             skip = self._init_archive(self.channel_title, type_="channels")
-            print(skip)
+
             if not skip:
                 self._fetch_channel_comments()
                 self._fetch_playlists()
@@ -294,7 +304,9 @@ class ChannelFetcher(YoutubeFetcher):
 
 
     def _fetch_channel(self):
-
+        """
+        Fetches video data of a youtube channel
+        """
         #save channel meta data
         channel_meta_filepath = "channel_meta.json"
         if channel_meta_filepath not in self._archive:        
@@ -335,12 +347,15 @@ class ChannelFetcher(YoutubeFetcher):
                 self._fetch_video_captions(video_id)                
 
     def _fetch_playlists(self):
+        """
+        Fetch playlist data for a youtube channel from the api
+        """
+
         print("fetching playlists meta data ...")
 
         #get list of  playlists
         playlists = []
         next_page = None
-
 
         #save playlists file
         playlists_filepath = "playlists.json"
@@ -415,7 +430,11 @@ class ChannelFetcher(YoutubeFetcher):
                 break
         self._archive.add(channel_comments_filepath, all_comments)
 
+
 class ChannelUpdateFetcher(YoutubeFetcher):
+    """
+    Generates a diff file for each channel, containing new videos and videos where the comment count changed
+    """
 
     def __init__(self, channel):
         super().__init__()
@@ -447,8 +466,6 @@ class ChannelUpdateFetcher(YoutubeFetcher):
 
             diff_filepath = os.path.join(self.CHANNELS, "{}_{}.zip".format(self.channel_title, datetime.now().isoformat()[:19]))
             self._archive = ZipArchive(diff_filepath)
-
-            #self._diff = ZipArchive(diff_filepath)
 
             updated = []
             print("Update youtube channel <{}>".format(self.channel_title))

@@ -16,6 +16,8 @@ __VERSION__ = 0.3
 
 PROV_AGENT = "pyg_{}".format(__VERSION__)
 
+
+#YAML TEMPLATES
 NETWORK_TEMPLATE = """
 # mgs:
 #   type: 'videos'
@@ -43,21 +45,21 @@ FETCH_TEMPLATE = """
 # - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
 """
 
+#DATA DIRECTORIES
 DATA_DIR = "data"
 ADDON_DIR = "addon"
 
-#ARCHIVE DIRS
+#ARCHIVE DIRECTORIES
 VIDEO_CAPTIONS_DIR = "video_captions"
 VIDEO_COMMENTS_DIR = "video_comments"
 VIDEO_METADATA_DIR = "video_meta"
 PLAYLISTS_DIR = "playlists"
 
+
 def init_project():
     """
     Creates templates for config.yml, fetch.yml, network.yml
     """
-    # if not os.path.exists(PROJECT["dir"]):
-    #     os.makedirs(PROJECT["dir"])
 
     config = {
         "project": {
@@ -87,6 +89,7 @@ def init_project():
         with open("network.yml", "w") as f:
             f.write(NETWORK_TEMPLATE)
 
+
 def load_config():
     """
     load config yml project directory and youtube api key information
@@ -115,6 +118,7 @@ def load_config():
     }
     return config
 
+
 def load_elasticsearch_config():
     """
     load elasticsearch credentials and index prefix from config.yml
@@ -140,24 +144,6 @@ def load_elasticsearch_config():
         raise IOError("config.yml not valid")
 
 
-
-def fetch_queue():
-    """
-    yields all channel in fetch.yml
-    """
-    try:
-        with open("fetch.yml") as f:
-            fetch = yaml.load(f)
-    except:
-        raise IOError("No valid fetch.yml available")
-    
-    if "channels" not in fetch:
-        raise IOError("fetch.yml not configured correclty")
-
-    if fetch["channels"]:
-        for channel in fetch["channels"]:
-            yield channel
-
 def fetch_config(group):
     """
     yields all channel in fetch.yml
@@ -168,8 +154,6 @@ def fetch_config(group):
     except:
         raise IOError("No valid fetch.yml available")
     
-    #if "channels" not in fetch:
-
     if group in fetch:
         return fetch[group]
     else:
@@ -186,15 +170,17 @@ def network_config(network_name):
     except:
         raise IOError("network.yml does not exist")
 
-    #print(network)
-
     for name, config in network.items():
         if network_name == name:
             return config
 
     raise IOError("no config for network <{}> available".format(network_name)) 
 
+
 def set_proxy(proxy):
+    """
+    sets up proxy connection
+    """
     addr, port = proxy.split(":")
     socks.setdefaultproxy(proxy_type=socks.PROXY_TYPE_SOCKS5, addr=addr, port=int(port))
     socket.socket = socks.socksocket

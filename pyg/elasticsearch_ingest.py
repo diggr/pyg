@@ -82,8 +82,10 @@ def _init_es(es, prefix, video_index, comment_index):
 
 
 def load_comment_classifier(cf):
+    """
+    Loads additional comment classifiers (e.g. through labeling) form  the ADDON data directory
+    """
     filepath = os.path.join(cf["ADDON_DIR"], "{}_comment_classifier.json".format(cf["PROJECT_NAME"]))
-    print(filepath)
     if os.path.exists(filepath):
         return json.load(open(filepath))
     else:
@@ -92,7 +94,6 @@ def load_comment_classifier(cf):
 def get_classifiers(classifier_dict, id_):
     if classifier_dict:
         if id_ in classifier_dict:
-            print (classifier_dict[id_]) 
             return classifier_dict[id_]
     return None
 
@@ -117,8 +118,8 @@ def elasticsearch_ingest(group, costum_prefix=""):
     if costum_prefix:
         prefix = costum_prefix
 
+    #import additonal comment classification
     comment_classfifier =  load_comment_classifier(CF)
-    #print(len(comment_classfifier))
 
     video_index = VIDEO_INDEX.format(prefix=prefix)
     comment_index = COMMENT_INDEX.format(prefix=prefix)
@@ -127,7 +128,6 @@ def elasticsearch_ingest(group, costum_prefix=""):
         es = Elasticsearch(ES_SERVER)
     else:
         es = Elasticsearch()
-    #print(video_index)
     
     _init_es(es, prefix, video_index, comment_index)
 
