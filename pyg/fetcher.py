@@ -56,8 +56,8 @@ class YoutubeFetcher(object):
         Initialize directories and set up youtube api
         """
 
-        if not os.path.exists(self.DATA_DIR):
-            os.makedirs(self.DATA_DIR)
+        if not os.path.exists(DATA_DIR):
+            os.makedirs(DATA_DIR)
         if not os.path.exists(self.CHANNELS):
             os.makedirs(self.CHANNELS)
         if not os.path.exists(self.VIDEOS):
