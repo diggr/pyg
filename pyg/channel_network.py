@@ -29,6 +29,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from collections import defaultdict
 from apiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 from pit.prov import Provenance
 
@@ -114,12 +115,22 @@ class RelatedChannelsNetwork(object):
         """
         gets metadata for all the channels in the related channel network
         """
-        for channel_id in tqdm(self.channel_list):
+
+        #remove tqdm for the moment because it causes problems
+        for i, channel_id in enumerate(self.channel_list):
+            print("{}/{} - fetching metadata for {} ...".format(i, len(self.channel_list), channel_id))
             if channel_id not in list(self.channel_metadata.keys()):
-                meta = self.youtube.channels().list(
-                    part="contentDetails,snippet,brandingSettings,contentOwnerDetails,invideoPromotion,statistics,status,topicDetails",
-                    id=channel_id
-                ).execute()
+                while True:
+                    try: 
+                        meta = self.youtube.channels().list(
+                            part="contentDetails,snippet,brandingSettings,contentOwnerDetails,invideoPromotion,statistics,status,topicDetails",
+                            id=channel_id
+                        ).execute()
+                    except HttpError:
+                        continue
+                    break
+
+
                 try:
                     item = meta["items"][0]
                     self.channel_metadata[channel_id] = {

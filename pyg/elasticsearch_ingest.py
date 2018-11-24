@@ -1,6 +1,7 @@
 import os
 import json
 from tqdm import tqdm
+from elasticsearch.exceptions import ConnectionTimeout
 from elasticsearch import helpers
 from elasticsearch import Elasticsearch
 from .reader import YoutubeArchiveReader
@@ -102,7 +103,8 @@ def get_channel_files(CF):
     channels = []
     channel_dir = os.path.join(CF["PROJECT_DIR"], "channels")
     for filename in os.listdir(channel_dir):
-        if ".prov" not in filename:
+        #ignore prov and update files
+        if ".prov" not in filename and "_2" not in filename:
             archive_filepath = os.path.join(channel_dir, filename)
             channels.append(archive_filepath)
     return channels
@@ -146,7 +148,10 @@ def elasticsearch_ingest(group, costum_prefix=""):
 
         channel = archive_filepath.split("/")[-1].replace(".zip", "")
 
-        for video in tqdm(archive):
+        # tqdm does not work atm
+        for i, video in enumerate(archive):
+
+            print(i)
 
             video_playlists = [x["title"] for x in video.playlists]
             try:
@@ -211,7 +216,13 @@ def elasticsearch_ingest(group, costum_prefix=""):
                         "top_level_comment": top_level_comment
                     }
                 })
-            helpers.bulk(es, comments_doc)
+            while True:
+                try:
+                    helpers.bulk(es, comments_doc)
+                except ConnectionTimeout:
+                    continue
+                break
+
     
 
 
