@@ -1,3 +1,12 @@
+"""
+
+Channels statistics script
+
+Counts the number of Videos and Comments of all channels in the dataset.
+Saves the result as csv table.
+
+"""
+
 import os
 import pandas as pd
 from pit.prov import Provenance
