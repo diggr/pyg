@@ -5,7 +5,7 @@ from .fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetcher
 from .channel_network import RelatedChannelsNetwork
 from .video_recommendation_network import VideoRecommendationNetwork
 from .elasticsearch_ingest import elasticsearch_ingest
-from .analysis import UserStatsBuilder
+from .analysis import UserStatsBuilder, channel_stats
 
 """
 Pyg command line tool
@@ -115,6 +115,8 @@ def network(ctx, api, network_name):
 def analysis(analysis_type):
     if analysis_type == "user-stats":
         stats = UserStatsBuilder()
+    elif analysis_type == "channel-stats":
+        channel_stats()
 
 @cli.command()
 @click.argument("group", default="channels")
