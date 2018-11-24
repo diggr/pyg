@@ -44,6 +44,12 @@ class RelatedChannelsNetwork(object):
     ChannelNetwork class builds a network of youtube channels based on a channels related and featured channels
     """
 
+    def is_channel_available(self, soup):
+        alerts = soup.find_all("div", {"class": "yt-alert-content"})
+        if len(alerts) == 2:
+            return False
+        return True    
+
     def _extract_related_channels(self, soup):
         """
         Extracts and yield channel ids from related channels,
@@ -78,8 +84,9 @@ class RelatedChannelsNetwork(object):
         related_channel_list = set()
         res = requests.get(YOUTUBE_CHANNEL.format(id=channel_id))
         soup = BeautifulSoup(res.text, "html.parser")
-        for channel_id in self._extract_related_channels(soup):
-            related_channel_list.add(channel_id)
+        if self.is_channel_available(soup):
+            for channel_id in self._extract_related_channels(soup):
+                related_channel_list.add(channel_id)
 
         return [ x for x in related_channel_list if x ]
 
