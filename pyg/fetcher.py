@@ -446,12 +446,6 @@ class ChannelUpdateFetcher(YoutubeFetcher):
     def __init__(self, channel, archive_filepath):
         super().__init__()
 
-        #get channel id
-        # if "channel/" in channel:
-        #     channel_id = channel.replace("channel/", "").strip()
-        # elif "user/" in channel:
-        #     channel_id = get_channel_id(self.youtube, channel.replace("user/", "").strip())
-        # self.channel_id = channel_id
 
         archive = ZipArchive(archive_filepath)
         self.channel_metadata = archive.get("channel_meta.json")
@@ -459,21 +453,6 @@ class ChannelUpdateFetcher(YoutubeFetcher):
         self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
 
         self._current = YoutubeArchiveReader(archive_filepath)
-
-
-        #fetch channel meta data
-        # self.channel_metadata = self.youtube.channels().list(
-        #     part="contentDetails,snippet,brandingSettings,contentOwnerDetails,invideoPromotion,statistics,status,topicDetails",
-        #     id=channel_id
-        #     ).execute()
-
- 
-
-            #self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
-            #self._init_archive(self.channel_title, type_="channels")
-
-            #archive_filepath = os.path.join(self.CHANNELS, "{}.zip".format(self.channel_title))
-
 
 
         diff_filepath = os.path.join(os.path.dirname(archive_filepath), "{}_{}.zip".format(self.channel_title, datetime.now().isoformat()[:19]))
