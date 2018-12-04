@@ -6,6 +6,7 @@ from elasticsearch import helpers
 from elasticsearch import Elasticsearch
 from .reader import YoutubeArchiveReader
 from .config import load_elasticsearch_config, load_config, ADDON_DIR, VIDEO_CAPTIONS_DIR, VIDEO_COMMENTS_DIR
+from .utils import get_channel_files, get_video_files
 
 VIDEO_INDEX = "{prefix}_yt_videos"
 VIDEO_DOC_TYPE = "video"
@@ -14,6 +15,7 @@ VIDEO_MAPPING = {
         "properties" : {
             "id": {"type": "keyword"},
             "channel": {"type": "keyword"},
+            "channel_group": {"type": "keyword"},
             "title": {"type": "text"},
             "description": {"type": "text"},
             "publication_date": {
@@ -47,6 +49,7 @@ COMMENT_MAPPING = {
     "comment": {
         "properties": {
             "channel": {"type": "keyword"},
+            "channel_group": {"type": "keyword"},            
             "video_id": { "type": "keyword" },
             "video_title": { "type": "text" },
             "video_playlists": {"type": "keyword"},
@@ -99,18 +102,7 @@ def get_classifiers(classifier_dict, id_):
     return None
 
 
-def get_channel_files(CF):
-    channels = []
-    channel_dir = os.path.join(CF["PROJECT_DIR"], "channels")
-    for filename in os.listdir(channel_dir):
-        #ignore prov and update files
-        if ".prov" not in filename and "_2" not in filename:
-            archive_filepath = os.path.join(channel_dir, filename)
-            channels.append(archive_filepath)
-    return channels
-
-
-def elasticsearch_ingest(group, costum_prefix=""):
+def elasticsearch_ingest(group, costum_prefix="", is_video_list=False):
     """
     Imports channel :channel_name: into elasticsearch
     """
@@ -133,23 +125,25 @@ def elasticsearch_ingest(group, costum_prefix=""):
     
     _init_es(es, prefix, video_index, comment_index)
 
-    if group == "channels":
+    if not is_video_list:
         archives = get_channel_files(CF)
     else:
-        archive_dir = os.path.join(CF["PROJECT_DIR"], "videos")
-        archives = [ os.path.join(archive_dir, "{}.zip".format(group)) ] 
+        archives = get_video_files(CF)
 
-    for archive_filepath in archives:
+    if group != "all":
+        archives = [ x for x in archives if x["group"] == group ]
+
+    for archive_config in archives:
+        archive_filepath = archive_config["archive"]
+        channel_group = archive_config["group"]
+
         print("import youtube archive <{}> into elasticsearch".format(archive_filepath.split("/")[-1]))
-
-        #yy = ChannelReader(channel)
 
         archive = YoutubeArchiveReader(archive_filepath)
 
-        channel = archive_filepath.split("/")[-1].replace(".zip", "")
-
         # tqdm does not work atm
         for i, video in enumerate(archive):
+            channel = video.channel
 
             print(i)
 
@@ -167,6 +161,7 @@ def elasticsearch_ingest(group, costum_prefix=""):
                 "id": video.id,
                 "title": video.title,
                 "channel": channel,
+                "channel_group": channel_group,
                 "caption_len": caption_len, 
                 "description": video.description,
                 "publication_date": video.pub_date[:10],
@@ -182,7 +177,13 @@ def elasticsearch_ingest(group, costum_prefix=""):
                 "duration": video.duration,
                 "playlists": video_playlists
             }
-            res = es.index(index=video_index, doc_type=VIDEO_DOC_TYPE, id=video.id, body=doc)
+
+            while True:
+                try:
+                    res = es.index(index=video_index, doc_type=VIDEO_DOC_TYPE, id=video.id, body=doc)
+                except ConnectionTimeout:
+                    continue
+                break
 
             comments_doc = []
             for comment in video.comments:
@@ -202,6 +203,7 @@ def elasticsearch_ingest(group, costum_prefix=""):
                     "_source": {
                         "video_id": video.id,
                         "channel": channel, 
+                        "channel_group": channel_group,
                         "video_title": video.title,
                         "video_playlists": video_playlists,
                         "classifiers": classifiers,

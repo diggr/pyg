@@ -67,14 +67,17 @@ class YoutubeFetcher(object):
         self.youtube =  build('youtube', 'v3', developerKey=CF["YOUTUBE_API_KEY"])
 
 
-    def _init_archive(self, name, type_):
+    def _init_archive(self, name, type_, group="main"):
         """
         Initialises zip archive file for youtube fetch project
         """
         if type_ == "channels":
-            self._dir = self.CHANNELS
+            self._dir = os.path.join(self.CHANNELS, group)
         elif type_ == "videos":
             self._dir = self.VIDEOS
+
+        if not os.path.exists(self._dir):
+            os.mkdir(self._dir)
 
         self.filepath = os.path.join(self._dir, "{}.zip".format(name))
         if self._skip and os.path.exists(self.filepath):
@@ -235,9 +238,11 @@ class VideoFetcher(YoutubeFetcher):
     Fetches video data and saves them into a zip archive.
     """
 
-    def __init__(self, video_ids, project_name="video_collection", comments=True, captions=True):
+    def __init__(self, video_ids, project_name="video_collection", comments=True, captions=True, skip=True):
         super().__init__()
-        #self.youtube =  build('youtube', 'v3', developerKey="AIzaSyCGhgLFUtvUyYRKnM913vFRY3paBLCqW4c")
+
+        self._skip = skip
+
         self._init_archive(project_name, type_="videos")
 
         self._archive.add("video_ids.json", video_ids)
@@ -246,7 +251,7 @@ class VideoFetcher(YoutubeFetcher):
             self._fetch_video_metadata(video_id)
             if comments:
                 self._fetch_video_comments(video_id)
-            if cpations:
+            if captions:
                 self._fetch_video_captions(video_id)
 
         self._archive.add_provenance (
@@ -262,7 +267,7 @@ class ChannelFetcher(YoutubeFetcher):
     Fetch channel related data by calling the corresponding methods.
     """
 
-    def __init__(self, channel, captions=True, comments=True, skip=True):
+    def __init__(self, channel, captions=True, comments=True, skip=True, group="main"):
         #self.youtube =  build('youtube', 'v3', developerKey="AIzaSyCGhgLFUtvUyYRKnM913vFRY3paBLCqW4c")
 
         super().__init__()
@@ -271,6 +276,8 @@ class ChannelFetcher(YoutubeFetcher):
         self._comments = comments
         self._skip = skip
 
+        
+        print(channel)
         #get channel id
         if "channel/" in channel:
             channel_id = channel.replace("channel/", "").strip()
@@ -290,7 +297,7 @@ class ChannelFetcher(YoutubeFetcher):
         else:
 
             self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
-            skip = self._init_archive(self.channel_title, type_="channels")
+            skip = self._init_archive(self.channel_title, type_="channels", group=group)
 
             if not skip:
                 self._fetch_channel_comments()
@@ -436,82 +443,87 @@ class ChannelUpdateFetcher(YoutubeFetcher):
     Generates a diff file for each channel, containing new videos and videos where the comment count changed
     """
 
-    def __init__(self, channel):
+    def __init__(self, channel, archive_filepath):
         super().__init__()
 
         #get channel id
-        if "channel/" in channel:
-            channel_id = channel.replace("channel/", "").strip()
-        elif "user/" in channel:
-            channel_id = get_channel_id(self.youtube, channel.replace("user/", "").strip())
-        self.channel_id = channel_id
+        # if "channel/" in channel:
+        #     channel_id = channel.replace("channel/", "").strip()
+        # elif "user/" in channel:
+        #     channel_id = get_channel_id(self.youtube, channel.replace("user/", "").strip())
+        # self.channel_id = channel_id
+
+        archive = ZipArchive(archive_filepath)
+        self.channel_metadata = archive.get("channel_meta.json")
+        channel_id = self.channel_metadata["items"][0]["id"]
+        self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
+
+        self._current = YoutubeArchiveReader(archive_filepath)
 
 
         #fetch channel meta data
-        self.channel_metadata = self.youtube.channels().list(
-            part="contentDetails,snippet,brandingSettings,contentOwnerDetails,invideoPromotion,statistics,status,topicDetails",
-            id=channel_id
-            ).execute()
+        # self.channel_metadata = self.youtube.channels().list(
+        #     part="contentDetails,snippet,brandingSettings,contentOwnerDetails,invideoPromotion,statistics,status,topicDetails",
+        #     id=channel_id
+        #     ).execute()
 
-        if not self.channel_metadata["items"]:
-            print("\t Invalid channel ID")
-        else:
+ 
 
-            self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
+            #self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
             #self._init_archive(self.channel_title, type_="channels")
 
-            archive_filepath = os.path.join(self.CHANNELS, "{}.zip".format(self.channel_title))
-            self._current = YoutubeArchiveReader(archive_filepath)
+            #archive_filepath = os.path.join(self.CHANNELS, "{}.zip".format(self.channel_title))
 
 
-            diff_filepath = os.path.join(self.CHANNELS, "{}_{}.zip".format(self.channel_title, datetime.now().isoformat()[:19]))
-            self._archive = ZipArchive(diff_filepath)
 
-            updated = []
-            print("Update youtube channel <{}>".format(self.channel_title))
+        diff_filepath = os.path.join(os.path.dirname(archive_filepath), "{}_{}.zip".format(self.channel_title, datetime.now().isoformat()[:19]))
+        self._archive = ZipArchive(diff_filepath)
 
-            uploads = self.channel_metadata["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
-            # get all video ids in uploads playlist
-            video_ids = []
-            next_page = None
-            while True:
-                playlist_page = self.youtube.playlistItems().list(
-                    playlistId=uploads,
-                    part="snippet,status",
-                    maxResults=50,
-                    pageToken=next_page
-                ).execute()
-                video_ids += [ x["snippet"]["resourceId"]["videoId"] for x in playlist_page["items"] ]
-                
-                if "nextPageToken" in playlist_page:
-                    next_page = playlist_page["nextPageToken"]
-                else:
-                    break            
+        updated = []
+        print("Update youtube channel <{}>".format(self.channel_title))
 
-            for video_id in tqdm(video_ids):
-
-                if video_id  in self._current.video_ids:
-                    video = self._current[video_id]
-                    comment_count = video.comment_count
-
-                    new_meta = self._load_video_metadata(video_id)
-                    meta = new_meta["items"][0]
-                    new_comment_count = int(meta["statistics"]["commentCount"]) if "commentCount" in meta["statistics"] else None
-
-                    if comment_count == new_comment_count:
-                        continue
-
-                updated.append(video_id)
-                self._fetch_video_metadata(video_id)
-                self._fetch_video_comments(video_id)
-                self._fetch_video_captions(video_id)
-
-            if len(updated) == 0:
-                os.remove(diff_filepath)
+        uploads = self.channel_metadata["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+        # get all video ids in uploads playlist
+        video_ids = []
+        next_page = None
+        while True:
+            playlist_page = self.youtube.playlistItems().list(
+                playlistId=uploads,
+                part="snippet,status",
+                maxResults=50,
+                pageToken=next_page
+            ).execute()
+            video_ids += [ x["snippet"]["resourceId"]["videoId"] for x in playlist_page["items"] ]
+            
+            if "nextPageToken" in playlist_page:
+                next_page = playlist_page["nextPageToken"]
             else:
-                self._archive.add("video_ids.json", updated)
-                self._archive.add_provenance(
-                    agent=PROV_AGENT, 
-                    activity="update_channel", 
-                    description="Youtube video/comment update data for channel <{}>".format(self.channel_title))
+                break            
+
+        for video_id in tqdm(video_ids):
+
+            if video_id  in self._current.video_ids:
+                video = self._current[video_id]
+                comment_count = video.comment_count
+
+                new_meta = self._load_video_metadata(video_id)
+                meta = new_meta["items"][0]
+                new_comment_count = int(meta["statistics"]["commentCount"]) if "commentCount" in meta["statistics"] else None
+
+                if comment_count == new_comment_count:
+                    continue
+
+            updated.append(video_id)
+            self._fetch_video_metadata(video_id)
+            self._fetch_video_comments(video_id)
+            self._fetch_video_captions(video_id)
+
+        if len(updated) == 0:
+            os.remove(diff_filepath)
+        else:
+            self._archive.add("video_ids.json", updated)
+            self._archive.add_provenance(
+                agent=PROV_AGENT, 
+                activity="update_channel", 
+                description="Youtube video/comment update data for channel <{}>".format(self.channel_title))
 

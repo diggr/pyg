@@ -26,6 +26,7 @@ from pit.prov import Provenance
 from ..reader import YoutubeArchiveReader
 from ..config import load_config
 from ..zip_archive import ZipArchive
+from ..utils import get_channel_files
 
 #DATA_DIR = "0../../darksouls/data/channels/"
 USER_STATISTICS = "{}_user_stats.zip"
@@ -56,7 +57,10 @@ class UserStatsBuilder(object):
 
     def load_files(self):
         users = defaultdict(list)
-        for filepath, filename in self.channel_files():
+        #for filepath, filename in self.channel_files():
+        for channel_config in get_channel_files(self.CF):
+            filename = channel_config["archive_name"]
+            filepath = channel_config["archive"]
             channel = YoutubeArchiveReader(filepath=filepath)
             for video in channel:         
                 for comment in video.comments:

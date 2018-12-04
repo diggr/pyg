@@ -12,7 +12,7 @@ import json
 import socks
 import socket
 
-__VERSION__ = 0.3
+__VERSION__ = 0.4
 
 PROV_AGENT = "pyg_{}".format(__VERSION__)
 
@@ -44,6 +44,18 @@ FETCH_TEMPLATE = """
 # - 'user/pythonselkanHD'
 # - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
 """
+
+FETCH_CHANNELS_TEMPLATE = """
+# main:
+# - 'user/pythonselkanHD'
+# - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
+"""
+
+FETCH_VIDEOS_TEMPLATE = """
+# video_list:
+# - '5IsSpAOD6K8'
+"""
+
 
 #DATA DIRECTORIES
 DATA_DIR = "data"
@@ -81,14 +93,17 @@ def init_project():
         with open("config.yml", "w") as f:
             yaml.dump(config, f, default_flow_style=False)
 
-    if not os.path.exists("fetch.yml"):
-        with open("fetch.yml", "w") as f:
-            f.write(FETCH_TEMPLATE)
+    if not os.path.exists("channels.yml"):
+        with open("channels.yml", "w") as f:
+            f.write(FETCH_CHANNELS_TEMPLATE)
 
     if not os.path.exists("network.yml"):
         with open("network.yml", "w") as f:
             f.write(NETWORK_TEMPLATE)
 
+    if not os.path.exists("videos.yml"):
+        with open("videos.yml", "w") as f:
+            f.write(FETCH_VIDEOS_TEMPLATE)
 
 def load_config():
     """
@@ -144,21 +159,29 @@ def load_elasticsearch_config():
         raise IOError("config.yml not valid")
 
 
-def fetch_config(group):
+def channel_config():
     """
-    yields all channel in fetch.yml
+    yields all channel in channels.yml
     """
     try:
-        with open("fetch.yml") as f:
+        with open("channels.yml") as f:
             fetch = yaml.load(f)
     except:
-        raise IOError("No valid fetch.yml available")
+        raise IOError("No valid channels.yml available")
     
-    if group in fetch:
-        return fetch[group]
-    else:
-        raise IOError("fetch.yml not configured correclty")
+    for group, channels in fetch.items():
+        yield (group, channels)
 
+
+def video_config():
+    try:
+        with open("videos.yml") as f:
+            fetch = yaml.load(f)
+    except:
+        raise IOError("No valid videos.yml available")
+    print(fetch)
+    for group, video_ids in fetch.items():
+        yield (group, video_ids)
 
 def network_config(network_name):
     """

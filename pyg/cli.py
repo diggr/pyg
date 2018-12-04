@@ -1,11 +1,12 @@
 import click
 import os
-from .config import init_project, load_config, fetch_config, network_config, set_proxy
+from .config import init_project, load_config, channel_config, video_config, network_config, set_proxy
 from .fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetcher
 from .channel_network import RelatedChannelsNetwork
 from .video_recommendation_network import VideoRecommendationNetwork
 from .elasticsearch_ingest import elasticsearch_ingest
 from .analysis import UserStatsBuilder, channel_stats
+from .utils import get_channel_files
 
 """
 Pyg command line tool
@@ -49,35 +50,68 @@ def cli(ctx, proxy):
         c = load_config()
         url = c["PROXY"]
         ctx.obj = { "PROXY": url}
-        #ctx.obj["PROXY"] = "abc"
-    #click.echo(proxy)
+
+
+# INIT COMMAND
 
 @cli.command()
 def init():
     print("init pyg project")
     init_project()
 
-@cli.command()
-@click.argument("group")
+
+# FETCH COMMANDS
+
+@cli.group()
+def fetch():
+    pass
+
+@fetch.command()
+@click.argument("group", default="all")
 @click.option("--comments/--no-comments", default=True)
 @click.option("--captions/--no-captions", default=True)
 @click.option("--skip/--no-skip", default=True)
-def fetch(group, comments, captions, skip):
-    fetch_list = fetch_config(group)
-    if group == "channels":
-        for channel in fetch_list:
-            ChannelFetcher(channel=channel, captions=captions, comments=comments, skip=skip)
-    else:
-        VideoFetcher(fetch_list, group, captions=captions, comments=comments)
+def channels(group, comments, captions, skip):
+    for group_name, channels in channel_config():
+        print(group_name, channels)
+        if group == "all" or group_name == group:
+            for channel in channels:
+                ChannelFetcher(channel=channel, captions=captions, comments=comments, skip=skip, group=group_name)
 
-@cli.command()
-@click.argument("group")
-def update(group):
-    fetch_list = fetch_config(group)
-    if group == "channels":
-        for channel in fetch_list:
-            ChannelUpdateFetcher(channel=channel)
+@fetch.command()
+@click.argument("group", default="all")
+@click.option("--comments/--no-comments", default=True)
+@click.option("--captions/--no-captions", default=True)
+@click.option("--skip/--no-skip", default=True)
+def videos(group, comments, captions, skip):
+    for group_name, video_ids in video_config():
+        if group == "all" or group_name == group:
+            VideoFetcher(video_ids, group_name)
 
+
+# UPDATE COMMAND
+
+@cli.group()
+def update():
+    pass
+
+@update.command()
+@click.argument("group", default="all")
+def channels(group):
+    CF = load_config()
+    for channel_cf  in get_channel_files(CF):
+        archive_name = channel_cf["archive_name"].replace(".zip", "")
+        archive_filepath = channel_cf["archive"]
+        print(archive_name, archive_filepath)
+        ChannelUpdateFetcher(archive_name, archive_filepath)
+    # for group_name, channels in channel_config():
+    #     print(group_name, channels)
+    #     if group == "all" or group_name == group:
+    #         for channel in channels:
+    #             ChannelUpdateFetcher(channel=channel)
+
+
+# NETWORK COMMAND
 
 @cli.command()
 @click.option("--api/--no-api", default=True)
@@ -110,6 +144,10 @@ def network(ctx, api, network_name):
         cn.to_graphml()
 
 
+
+
+# ANALYSIS COMMAND
+
 @cli.command()
 @click.argument("analysis_type", default="channels")
 def analysis(analysis_type):
@@ -118,15 +156,26 @@ def analysis(analysis_type):
     elif analysis_type == "channel-stats":
         channel_stats()
 
-@cli.command()
-@click.argument("group", default="channels")
+
+# ELASTICSEARCH EXPORT COMMANDS
+
+@cli.group()
+def elasticsearch():
+    pass
+
+@elasticsearch.command()
+@click.argument("group", default="all")
 @click.argument("prefix", default="")
-def es(group, prefix):
+def channels(group, prefix):
     elasticsearch_ingest(group, prefix)
+    print("es cahnnels")
 
-@cli.command()
-def test():
-    click.echo("test")
+@elasticsearch.command()
+@click.argument("group", default="all")
+@click.argument("prefix", default="")
+def videos(group, prefix):
+    elasticsearch_ingest(group, prefix, is_video_list=True)
+    print("es videos")
 
-#if __name__ == "__main__":
-#    cli(obj={})
+
+

@@ -176,6 +176,7 @@ class Video(object):
         self.pub_date = snippet["publishedAt"]
         self.playlists = []
         self.duration = self._parse_duration(content_details["duration"])
+        self.channel = snippet["channelTitle"]
 
         #get tags and categories
         self.tags = snippet["tags"] if "tags" in snippet else[]

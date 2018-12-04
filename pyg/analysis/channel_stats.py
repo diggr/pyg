@@ -14,13 +14,14 @@ from pit.prov import Provenance
 from ..zip_archive import ZipArchive
 from ..reader import YoutubeArchiveReader
 from ..config import load_config, VIDEO_METADATA_DIR, PROV_AGENT
+from ..utils import get_channel_files
 
 
-def channel_files(channel_dir):
-    for channel_file in os.listdir(channel_dir):
-        if channel_file.endswith(".zip"):    
-            filepath = os.path.join(channel_dir, channel_file)
-            yield filepath, channel_file
+# def channel_files(channel_dir):
+#     for channel_file in os.listdir(channel_dir):
+#         if channel_file.endswith(".zip"):    
+#             filepath = os.path.join(channel_dir, channel_file)
+#             yield filepath, channel_file
 
 
 def init_analysis_dir(cf):
@@ -42,7 +43,11 @@ def channel_stats():
     stats = []
     filepaths = []
 
-    for filepath, channel_file in channel_files(channel_dir):
+    #for filepath, channel_file in channel_files(channel_dir):
+    for channel_config in get_channel_files(CF):
+
+        filepath = channel_config["archive"]
+        channel_file = channel_config["archive_name"]
 
         filepaths.append(filepath)
 
