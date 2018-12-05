@@ -2,6 +2,8 @@
 
 A tool for Youtube data retrieval and analysis.
 
+Current version: 0.4
+
 ## Functionality:
  
 * Fetch Youtube data (metadata for videos, playlists, comments and captions) for channels as well as for collections of videos
@@ -22,11 +24,7 @@ pip install .
 
 - Python 3.6
 - Youtube Data API Key
-
-## Current version:
-
-0.4
-
+- Strong nerves 
 
 ## Usage:
 
