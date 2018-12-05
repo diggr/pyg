@@ -1,6 +1,6 @@
-# Pyg - passable youtube grabber
+# PYG - passable youtube grabber
 
-A tool for Youtube data retrieval and analysis.
+An okayish tool for Youtube data retrieval and analysis.
 
 Current version: 0.4
 
