@@ -38,13 +38,6 @@ $ pyg init
 ```
 The last command creates template files for the project configuration (config.yml), fetch items (channels.yml, videos.yml) and networks (network.yml).
 
-### Configure project
-
-Open config.yml and add:
-* Youtube API key
-* Url with user name and password of the elasticsearch server / prefix for the video/comment index (can be left blank if you don't intend of exporting data to ES)
-* Project name (not used at the moment)
-
 
 ### Command line interface
 
@@ -88,7 +81,10 @@ pyg
 
 ### The config.yml
 
-Before you can start, you will need to add some information to the config.yml
+Before you can start, you will need to add some information to the config.yml.
+At least you need:
+* Youtube API key
+* Url (with user name and password) of your elasticsearch server (can be left blank if you don't intend to export data to ES)
 
 ```
 elasticsearch:
