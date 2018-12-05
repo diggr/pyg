@@ -1,6 +1,6 @@
 # PYG - passable youtube grabber
 
-An okayish tool for Youtube data retrieval and analysis.
+A tool for Youtube data retrieval and analysis.
 
 Current version: 0.4
 
@@ -24,7 +24,6 @@ pip install .
 
 - Python 3.6
 - Youtube Data API Key
-- Strong nerves and patience
 
 ## Usage:
 
@@ -255,5 +254,5 @@ $ pyg --proxy network darksouls
 ## Authors:
 team@diggr.link
 
-## Lincence:
+## Licence:
 GPL-3.0
