@@ -24,7 +24,7 @@ pip install .
 
 - Python 3.6
 - Youtube Data API Key
-- Strong nerves 
+- Strong nerves and patience
 
 ## Usage:
 
