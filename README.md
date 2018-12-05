@@ -23,6 +23,10 @@ pip install .
 - Python 3.6
 - Youtube Data API Key
 
+## Current version:
+
+0.4
+
 
 ## Usage:
 
@@ -34,7 +38,7 @@ $ cd pygproject
 $ pyg init
 
 ```
-The last command creates template files for the project configuration (config.yml), fetch items (fetch.yml) and networks (network.yml).
+The last command creates template files for the project configuration (config.yml), fetch items (channels.yml, videos.yml) and networks (network.yml).
 
 ### Configure project
 
@@ -54,10 +58,18 @@ pyg
     init
 
     fetch
-        <group name>
+        channels
+            <group name>
+            --comments/--no-comments (default: comments)
+            --captions/--no-captions (default: captions)
+        videos
+            <group name>
+            --comments/--no-comments (default: comments)
+            --captions/--no-captions (default: captions)
 
     update
-        <group name>
+        channels
+            <group name>
 
     network
         <network name>
@@ -65,23 +77,47 @@ pyg
 
     analysis
         user-stats
+        channel-stats
 
-    es
-        <group name>
-        <index prefix>
+    elasticsearch
+        channels
+            <group name>
+            <index prefix>
+        videos
+            <group name>
+            <index prefix>
 ```
+
+### The config.yml
+
+Before you can start, you will need to add some information to the config.yml
+
+```
+elasticsearch:
+  prefix: pyg_        # default elasticsearch prefix
+  url: ''             # url for elasticsearch server
+network:
+  proxy: ''           # if you use a proxy server, add it here
+project:         
+  dir: data           # you might change the data directory (or not)
+  name: pyg_project   # change to your project name
+youtube:
+  api-key: ''         # add your YouTube API key here, otherwise nothing will work
+```
+
+
 
 ### Fetch youtube data
 
-Add fetch items (channels or video lists) to fetch.yml
+Add fetch items (channels) to channels.yml
 
-e.g. fetch.yml:
 ```
-channels:
+main_group:
 - channel/UCdQHEqTxcFzjFCrq0o4V7dg
 - channel/UCI06ztiuPl-F9cSXsejMV8A
+other_group:
+- channel/UCZzPA6tCoQAZNiddpE-xA_Q
 ```
-
 
 Then use the pyg fetch command
 
@@ -89,15 +125,75 @@ Then use the pyg fetch command
 $ pyg fetch channels
 ```
 
-
-Ingest youtube data to elasticsearch
+or for only a specific group:
 
 ```
-$ pyg ingest channels
+$ pyg fetch channels other_group
+```
+
+The channels will be fetched and saved into the projects data folder (specified in the config.yml). 
+For each group, a folder will be created where each channel in the group will be saved as a zip archive. 
+Pyg will also generate a .prov file for each zip archive, containing metadata about the fetching process.
+
+
+It is also possible to just get single videos in a similar way.
+
+Add the videos IDs to videos.yml:
+
+```
+my_video_list:
+- 5IsSpAOD6K8
+- qFLw26BjDZs
+```
+
+and use the fetch videos command:
+
+```
+$ pyg fetch videos 
+```
+
+or for a specific group:
+
+```
+$ pyg fetch videos my_video_list
 ```
 
 
-Generate Diff file 
+### Ingest youtube data to elasticsearch
+
+This command build two elasticsearch indexes, one for the video data and one for comment data.
+If not otherwise specified, it will use the prefix defind in the config.yaml
+
+The following command build two indexes:
+pyg_videos
+pyg_comments
+
+```
+$ pyg elasticsearch channels
+```
+
+
+The following command build two indexes:
+my_prefix_videos
+my_prefix_comments
+
+```
+$ pyg elasticsearch channels other_group my_prefix
+```
+
+CAUTION: If an index already exists, it will be overwritten!
+
+
+Video lists work in the same way:
+
+```
+$ pyg elasticsearch videos my_video_list
+```
+
+Again, be careful not to overwrite existing indexes.
+
+
+### Get channel updates 
 
 ```
 $ pyg update channels
@@ -106,7 +202,7 @@ $ pyg update channels
 The update script checks for each video in the channel if the comment count changed. If so, the current video data will be fetched from the Youtube API.
 New videos will also fetched.
 
-A Diff file for each channel in the form of <channel_name>_timestamp.zip will be created in the data folder.
+An update-file for each channel in the form of <channel_name>_<timestamp>.zip will be created in the data folder.
 
 
 ### Build recommended videos and related channel networks
