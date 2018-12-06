@@ -15,4 +15,4 @@ google_api_python_client==1.7.4
 beautifulsoup4==4.6.3
 python_dateutil==2.7.5
 SocksiPy_branch==1.01
-PyYAML==3.13
+PyYAML==3.12
