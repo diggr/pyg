@@ -23,10 +23,11 @@ import time
 import zipfile
 
 from datetime import datetime
-from pit.prov import Provenance
+from provit.prov import Provenance
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 from apiclient.discovery import build
+
 
 from .zip_archive import ZipArchive
 from .reader import YoutubeArchiveReader
@@ -128,17 +129,21 @@ class YoutubeFetcher(object):
         #get all comment threads (top level comments + first five replies)
         threads= []
         next_page = None
+        offset = 0
         while True:
-            try:
-                comment_threads = self.youtube.commentThreads().list(
-                    part="snippet,replies",
-                    videoId=video_id,
-                    maxResults=100,
-                    pageToken=next_page
-                ).execute()
-            except:
-                print("\t fetching comment threads for video <{}> failed".format(video_id))
-                break
+            print(offset)
+            offset += 100
+            #try:
+            comment_threads = self.youtube.commentThreads().list(
+                part="snippet,replies",
+                videoId=video_id,
+                maxResults=100,
+                pageToken=next_page
+            ).execute()
+            # except:
+            #     print("\t fetching comment threads for video <{}> failed".format(video_id))
+            #     print(offset)
+            #     break
 
             threads += comment_threads["items"]
             if "nextPageToken" in comment_threads:
@@ -255,7 +260,7 @@ class VideoFetcher(YoutubeFetcher):
                 self._fetch_video_captions(video_id)
 
         self._archive.add_provenance (
-            agent=PROV_AGENT, 
+            agents=[ PROV_AGENT ], 
             activity="fetch_video_collection", 
             description="Youtube video/comment data for collection <{}>".format(project_name))
 
@@ -305,7 +310,7 @@ class ChannelFetcher(YoutubeFetcher):
                 self._fetch_channel()
 
                 self._archive.add_provenance(
-                    agent=PROV_AGENT, 
+                    agents=[ PROV_AGENT ], 
                     activity="fetch_channel", 
                     description="Youtube video/comment data for channel <{}>".format(self.channel_title))
 
@@ -502,7 +507,7 @@ class ChannelUpdateFetcher(YoutubeFetcher):
         else:
             self._archive.add("video_ids.json", updated)
             self._archive.add_provenance(
-                agent=PROV_AGENT, 
+                agents=[ PROV_AGENT ], 
                 activity="update_channel", 
                 description="Youtube video/comment update data for channel <{}>".format(self.channel_title))
 

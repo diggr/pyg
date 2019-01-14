@@ -1,9 +1,9 @@
 """
 Reader for scraped youtube channels
-Uses two classes: ChannelReader and Video
+Uses two classes: YoutubeArchiveReader and Video
 
 
-class ChannelReader properties:
+class YoutubeArchiveReader properties:
 - videos [list of Video objects]
 
 - video_tags()
@@ -23,7 +23,6 @@ Video properities:
 
 - comment_stats()
 - users()
-
 
 Use:
 
@@ -268,6 +267,21 @@ class Video(object):
         for comment in self.comments:
             if user == comment["author"]:
                 yield comment
+
+    def threads():
+        """
+        Iterates through the comment threads of this video
+        """
+        
+        threads = defaultdict(list)
+        for comment in self.comments:
+            threads[comments["comment_thread"]].append(comment)
+        
+        for thread_id, comments in threads.items():
+            yield {
+                "thread_id": thread_id,
+                "comments": sorted(comments, key=lambda x: x["timestamp"])
+            }
 
 
 class Playlist(object):

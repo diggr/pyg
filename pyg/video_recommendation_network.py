@@ -26,7 +26,7 @@ from apiclient.discovery import build
 from bs4 import BeautifulSoup
 
 from .config import load_config, PROV_AGENT
-from pit.prov import Provenance
+from provit.prov import Provenance
 
 OUT_DIR = "video_networks"
 
@@ -168,7 +168,7 @@ class VideoRecommendationNetwork(object):
         else:
             description = "Youtube recommended video network for seeds='{}' and depth <{}>".format(self.seeds, self.depth)
         prov.add(
-            agent=PROV_AGENT, 
+            agents=[ PROV_AGENT ], 
             activity="video_network", 
             description=description)
         prov.add_primary_source("youtube", url="https://www.youtube.com")
