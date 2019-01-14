@@ -21,7 +21,7 @@ import numpy as np
 import scipy.stats as ss
 from collections import defaultdict, Counter
 from tqdm import tqdm
-from pit.prov import Provenance
+from provit.prov import Provenance
 
 from ..reader import YoutubeArchiveReader
 from ..config import load_config
@@ -162,7 +162,7 @@ class UserStatsBuilder(object):
 
         prov = Provenance(self.stats_file)
         prov.add(
-            agent="build_pyg_user_stats_script",
+            agents=[ "build_pyg_user_stats_script" ],
             activity="build_user_stats",
             description="user stats from youtube channels in directory <{}>".format(self.channel_dir)
         )

@@ -157,7 +157,7 @@ class Video(object):
         #print(h+ m+ s)
         return h + m + s
 
-    def __init__(self, archive, video_id):
+    def __init__(self, archive, video_id, verbose=False):
 
         self._archive = archive
 
@@ -200,7 +200,8 @@ class Video(object):
             try:
                 comments_data = archive.get(comments_filepath)
             except:
-                print("no comments available for <{}>".format(self.id))
+                if verbose:
+                    print("no comments available for <{}>".format(self.id))
                 return
             
             replies_data = archive.get(replies_filepath)
@@ -223,7 +224,8 @@ class Video(object):
                 if "authorChannelId" in post["snippet"]:
                     author_id =  post["snippet"]["authorChannelId"]["value"]
                 else:
-                    print("NO AUTHOR CHANNEL ID")
+                    if verbose:
+                        print("NO AUTHOR CHANNEL ID")
                     author_id = None
 
                 self.comments.append({
@@ -268,14 +270,16 @@ class Video(object):
             if user == comment["author"]:
                 yield comment
 
-    def threads():
+    def threads(self):
         """
         Iterates through the comment threads of this video
         """
         
         threads = defaultdict(list)
         for comment in self.comments:
-            threads[comments["comment_thread"]].append(comment)
+            if (comment["comment_thread"]):
+                threads[comment["comment_thread"]].append(comment)
+            
         
         for thread_id, comments in threads.items():
             yield {

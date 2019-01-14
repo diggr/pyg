@@ -3,13 +3,13 @@ requests==2.20.0
 numpy==1.15.3
 tqdm==4.28.1
 pandas==0.23.4
-setuptools==36.5.0
+setuptools==40.6.3
 matplotlib==3.0.1
 elasticsearch==6.3.1
 matplotlib_venn==0.11.5
 networkx==2.2
 scipy==1.1.0
-provit==0.2.2
+provit==1.0.0
 lxml==4.2.5
 google_api_python_client==1.7.4
 beautifulsoup4==4.6.3

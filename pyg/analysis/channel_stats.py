@@ -9,7 +9,7 @@ Saves the result as csv table.
 
 import os
 import pandas as pd
-from pit.prov import Provenance
+from provit.prov import Provenance
 
 from ..zip_archive import ZipArchive
 from ..reader import YoutubeArchiveReader
@@ -94,7 +94,7 @@ def channel_stats():
     
     prov = Provenance(stats_file)
     prov.add(
-        agent=PROV_AGENT,
+        agents=[ PROV_AGENT ],
         activity="analysis_channel_stats",
         description="generate list of videos and comments for channels in <{}>".format(channel_dir)
     )
