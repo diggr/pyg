@@ -53,6 +53,7 @@ class ZipArchive(zipfile.ZipFile):
         """
         Reads (text-)file from zip file.
         """
+        filepath = filepath.replace("\\", "/")
         data = self.read(filepath)
         if filepath.endswith(".json"):
             return json.loads(data.decode("utf-8"))
@@ -68,10 +69,10 @@ class ZipArchive(zipfile.ZipFile):
         else:
             return False
 
-    def add_provenance(self, agent, activity, description):
+    def add_provenance(self, agents, activity, description):
         prov = Provenance(self.filepath)
         prov.add(
-            agents=[agent], 
+            agents=agents, 
             activity=activity, 
             description=description)
         prov.add_primary_source("youtube", url="https://www.youtube.com")

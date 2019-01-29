@@ -28,6 +28,7 @@ def get_channel_files(CF):
     channel_dir = os.path.join(CF["PROJECT_DIR"], "channels")
     for group_name in os.listdir(channel_dir):
         group_dir = os.path.join(channel_dir, group_name)
+        print(group_dir)
         #ignore prov and update files
         for filename in os.listdir(group_dir):
             if ".prov" not in filename and "_2" not in filename:

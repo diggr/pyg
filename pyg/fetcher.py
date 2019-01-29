@@ -92,12 +92,19 @@ class YoutubeFetcher(object):
         """
         Load video metadata from youtube api
         """
-        video_data = self.youtube.videos().list(
-            part="id,recordingDetails,snippet,statistics,status,topicDetails,contentDetails",
-            id=video_id
-            ).execute()       
-        return video_data
 
+        while True:
+            try:
+                video_data = self.youtube.videos().list(
+                    part="id,recordingDetails,snippet,statistics,status,topicDetails,contentDetails",
+                    id=video_id
+                    ).execute()       
+                break
+            except:
+                print("retrying fetching video metadata ...")
+                continue
+
+        return video_data
 
     def _fetch_video_metadata(self, video_id):
         """
@@ -131,19 +138,34 @@ class YoutubeFetcher(object):
         next_page = None
         offset = 0
         while True:
-            print(offset)
+            #print(offset)
             offset += 100
             #try:
-            comment_threads = self.youtube.commentThreads().list(
-                part="snippet,replies",
-                videoId=video_id,
-                maxResults=100,
-                pageToken=next_page
-            ).execute()
+            retries = 0
+            while True:
+                try:
+                    comment_threads = self.youtube.commentThreads().list(
+                        part="snippet,replies",
+                        videoId=video_id,
+                        maxResults=100,
+                        pageToken=next_page
+                    ).execute()
+                    break
+                except: 
+                    retries += 1
+                    print("retrying fetching comment data ...")
+
+                    if retries > 15:
+                         print("\t fetching comment threads for video <{}> failed".format(video_id))
+                         break
+
+                    continue
             # except:
             #     print("\t fetching comment threads for video <{}> failed".format(video_id))
             #     print(offset)
             #     break
+            if retries > 15:
+                break
 
             threads += comment_threads["items"]
             if "nextPageToken" in comment_threads:
@@ -161,12 +183,20 @@ class YoutubeFetcher(object):
                     thread_all_comments = []
                     next_page = None
                     while True:
-                        comments = self.youtube.comments().list(
-                            part='snippet',
-                            parentId=thread["id"],
-                            maxResults=100,
-                            pageToken=next_page
-                        ).execute()
+
+                        while True:
+                            try:
+                                comments = self.youtube.comments().list(
+                                    part='snippet',
+                                    parentId=thread["id"],
+                                    maxResults=100,
+                                    pageToken=next_page
+                                ).execute()
+                                break
+                            except:
+                                print("retrying fetchen comment data ...")
+                                continue
+                        
                         thread_all_comments += comments["items"]
                         if "nextPageToken" in comments:
                             next_page = comments["nextPageToken"]
@@ -252,7 +282,9 @@ class VideoFetcher(YoutubeFetcher):
 
         self._archive.add("video_ids.json", video_ids)
 
-        for video_id in tqdm(video_ids):
+        
+        for i, video_id in enumerate(video_ids):
+            print ("{}/{}".format(i, len(video_ids)))
             self._fetch_video_metadata(video_id)
             if comments:
                 self._fetch_video_comments(video_id)
@@ -351,7 +383,8 @@ class ChannelFetcher(YoutubeFetcher):
                     break
             self._archive.add(videos_filepath, video_ids)
 
-        for video_id in tqdm(video_ids):  
+        for i, video_id in enumerate(video_ids):  
+            print("{}/{}".format(i, len(video_ids)))
             self._fetch_video_metadata(video_id)
             if self._comments:
                 self._fetch_video_comments(video_id)
@@ -386,7 +419,7 @@ class ChannelFetcher(YoutubeFetcher):
             playlists = self._archive.get(playlists_filepath)
 
         #get meta data for each playlists
-        for playlist in tqdm(playlists):
+        for playlist in playlists:
 
             playlist_id = playlist["id"]
             playlist_filepath = os.path.join(self.PLAYLISTS, "{}.json".format(playlist_id))
@@ -484,8 +517,8 @@ class ChannelUpdateFetcher(YoutubeFetcher):
             else:
                 break            
 
-        for video_id in tqdm(video_ids):
-
+        for i, video_id in enumerate(video_ids):
+            print("{}/{}".format(i, len(video_ids)))
             if video_id  in self._current.video_ids:
                 video = self._current[video_id]
                 comment_count = video.comment_count
