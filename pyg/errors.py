@@ -1,0 +1,2 @@
+class ApiRetryExceededError(Exception):
+    pass

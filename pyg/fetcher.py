@@ -23,18 +23,41 @@ import time
 import zipfile
 
 from datetime import datetime
-from provit.prov import Provenance
+from provit import Provenance
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 from apiclient.discovery import build
 
-
+from .errors import ApiRetryExceededError
 from .zip_archive import ZipArchive
 from .reader import YoutubeArchiveReader
 from .utils import get_channel_id, remove_html
 from .config import load_config, PROV_AGENT, DATA_DIR
 
 YOUTUBE_URL = "https://www.youtube.com/watch?v={id}"
+
+MAX_RETRIES = 15
+
+def youtube_api_call(cmd, max_retries=MAX_RETRIES):
+    """
+    Execute youtube api command and retry if failed.
+    If api call fails <max_retries> times, raise error.
+    """
+    while True:
+        try:
+            data = cmd.execute()
+            break
+        except: 
+            retries += 1
+            print("retrying fetching data from youtube api ...")
+
+            if retries > 15:
+                raise ApiRetryExceededError
+
+            continue
+
+    return data
+
 
 class YoutubeFetcher(object):
     """
@@ -93,18 +116,13 @@ class YoutubeFetcher(object):
         Load video metadata from youtube api
         """
 
-        while True:
-            try:
-                video_data = self.youtube.videos().list(
+        cmd = self.youtube.videos().list(
                     part="id,recordingDetails,snippet,statistics,status,topicDetails,contentDetails",
-                    id=video_id
-                    ).execute()       
-                break
-            except:
-                print("retrying fetching video metadata ...")
-                continue
+                    id=video_id)
 
+        video_data = youtube_api_call(cmd)
         return video_data
+
 
     def _fetch_video_metadata(self, video_id):
         """
@@ -119,6 +137,7 @@ class YoutubeFetcher(object):
 
         video_data = self._load_video_metadata(video_id)
         self._archive.add(metadata_filepath, video_data)
+
 
     def _fetch_video_comments(self, video_id):
         """
@@ -138,33 +157,20 @@ class YoutubeFetcher(object):
         next_page = None
         offset = 0
         while True:
-            #print(offset)
+
             offset += 100
-            #try:
             retries = 0
-            while True:
-                try:
-                    comment_threads = self.youtube.commentThreads().list(
+
+            cmd = self.youtube.commentThreads().list(
                         part="snippet,replies",
                         videoId=video_id,
                         maxResults=100,
                         pageToken=next_page
-                    ).execute()
-                    break
-                except: 
-                    retries += 1
-                    print("retrying fetching comment data ...")
-
-                    if retries > 15:
-                         print("\t fetching comment threads for video <{}> failed".format(video_id))
-                         break
-
-                    continue
-            # except:
-            #     print("\t fetching comment threads for video <{}> failed".format(video_id))
-            #     print(offset)
-            #     break
-            if retries > 15:
+                    )
+            
+            try:
+                comment_threads = youtube_api_call(cmd)
+            except ApiRetryExceededError:
                 break
 
             threads += comment_threads["items"]
@@ -183,19 +189,15 @@ class YoutubeFetcher(object):
                     thread_all_comments = []
                     next_page = None
                     while True:
-
-                        while True:
-                            try:
-                                comments = self.youtube.comments().list(
+                        
+                        cmd = self.youtube.comments().list(
                                     part='snippet',
                                     parentId=thread["id"],
                                     maxResults=100,
                                     pageToken=next_page
-                                ).execute()
-                                break
-                            except:
-                                print("retrying fetchen comment data ...")
-                                continue
+                                )
+                        
+                        comments = youtube_api_call(cmd)
                         
                         thread_all_comments += comments["items"]
                         if "nextPageToken" in comments:
@@ -305,7 +307,6 @@ class ChannelFetcher(YoutubeFetcher):
     """
 
     def __init__(self, channel, captions=True, comments=True, skip=True, group="main"):
-        #self.youtube =  build('youtube', 'v3', developerKey="AIzaSyCGhgLFUtvUyYRKnM913vFRY3paBLCqW4c")
 
         super().__init__()
 
@@ -369,12 +370,15 @@ class ChannelFetcher(YoutubeFetcher):
             video_ids = []
             next_page = None
             while True:
-                playlist_page = self.youtube.playlistItems().list(
+
+                cmd = self.youtube.playlistItems().list(
                     playlistId=uploads,
                     part="snippet,status",
                     maxResults=50,
                     pageToken=next_page
-                ).execute()
+                )
+                playlist_page = youtube_api_call(cmd)
+
                 video_ids += [ x["snippet"]["resourceId"]["videoId"] for x in playlist_page["items"] ]
                 
                 if "nextPageToken" in playlist_page:
@@ -430,12 +434,15 @@ class ChannelFetcher(YoutubeFetcher):
             playlist_items = []
             next_page = None
             while True:
-                playlist_page = self.youtube.playlistItems().list(
+
+                cmd = self.youtube.playlistItems().list(
                     playlistId=playlist_id,
                     part="snippet,status",
                     maxResults=50,
                     pageToken=next_page
-                ).execute()
+                )
+                playlist_page = youtube_api_call(cmd)
+
                 playlist_items += playlist_page["items"]
                 if "nextPageToken" in playlist_page:
                     next_page = playlist_page["nextPageToken"]
@@ -457,14 +464,16 @@ class ChannelFetcher(YoutubeFetcher):
         all_comments = []
         next_page = None
         while True:
-            try:
-                comment_threads = self.youtube.commentThreads().list(
+
+            cmd = self.youtube.commentThreads().list(
                     part="snippet,replies",
                     channelId=self.channel_id,
                     maxResults=100,
                     pageToken=next_page
-                ).execute()
-            except:
+                )
+            try:
+                comment_threads = youtube_api_call(cmd)
+            except ApiRetryExceededError:
                 print("\t API call failed")
                 return
 
@@ -484,14 +493,12 @@ class ChannelUpdateFetcher(YoutubeFetcher):
     def __init__(self, channel, archive_filepath):
         super().__init__()
 
-
         archive = ZipArchive(archive_filepath)
         self.channel_metadata = archive.get("channel_meta.json")
         channel_id = self.channel_metadata["items"][0]["id"]
         self.channel_title = self.channel_metadata["items"][0]["snippet"]["title"]
 
         self._current = YoutubeArchiveReader(archive_filepath)
-
 
         diff_filepath = os.path.join(os.path.dirname(archive_filepath), "{}_{}.zip".format(self.channel_title, datetime.now().isoformat()[:19]))
         self._archive = ZipArchive(diff_filepath)
@@ -504,12 +511,15 @@ class ChannelUpdateFetcher(YoutubeFetcher):
         video_ids = []
         next_page = None
         while True:
-            playlist_page = self.youtube.playlistItems().list(
+
+            cmd = self.youtube.playlistItems().list(
                 playlistId=uploads,
                 part="snippet,status",
                 maxResults=50,
                 pageToken=next_page
-            ).execute()
+            )
+            playlist_page = youtube_api_call(cmd)
+
             video_ids += [ x["snippet"]["resourceId"]["videoId"] for x in playlist_page["items"] ]
             
             if "nextPageToken" in playlist_page:
