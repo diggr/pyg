@@ -118,6 +118,11 @@ class YoutubeArchiveReader(object):
         video = self._load_video(video_id)
         return video
 
+    def last_update_file(self):
+        if len(self._update_files) > 0:
+            return str(self._update_files[-1])
+        else:
+            return self._archive.filepath
 
 
 class Video(object):

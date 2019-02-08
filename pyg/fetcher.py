@@ -549,8 +549,13 @@ class ChannelUpdateFetcher(YoutubeFetcher):
             os.remove(diff_filepath)
         else:
             self._archive.add("video_ids.json", updated)
-            self._archive.add_provenance(
+            prov = Provenance(self._archive.filepath)
+            prov.add(
                 agents=[ PROV_AGENT ], 
                 activity="update_channel", 
-                description="Youtube video/comment update data for channel <{}>".format(self.channel_title))
+                description="Youtube video/comment update data for channel <{}>".format(self.channel_title)
+            )
+            prov.add_sources([ self._current.last_update_file() ])
+            prov.save()
+            
 
