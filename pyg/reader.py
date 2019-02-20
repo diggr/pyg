@@ -120,7 +120,7 @@ class YoutubeArchiveReader(object):
 
     def last_update_file(self):
         if len(self._update_files) > 0:
-            return str(self._update_files[-1])
+            return str([ x.filepath for x in self._update_files ][-1])
         else:
             return self._archive.filepath
 

@@ -43,6 +43,7 @@ def youtube_api_call(cmd, max_retries=MAX_RETRIES):
     Execute youtube api command and retry if failed.
     If api call fails <max_retries> times, raise error.
     """
+    retries = 0
     while True:
         try:
             data = cmd.execute()
@@ -548,6 +549,7 @@ class ChannelUpdateFetcher(YoutubeFetcher):
         if len(updated) == 0:
             os.remove(diff_filepath)
         else:
+            print(self._current.last_update_file())
             self._archive.add("video_ids.json", updated)
             prov = Provenance(self._archive.filepath)
             prov.add(
