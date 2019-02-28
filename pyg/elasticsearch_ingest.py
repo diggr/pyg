@@ -59,14 +59,7 @@ COMMENT_MAPPING = {
             "user": { "type": "keyword"},
             "user_id": { "type": "keyword" },
             "likes": { "type": "integer"},
-            "text": { 
-                "type": "text",
-                # "fields": {
-                #     "raw": { 
-                #         "type":  "keyword"
-                #     }
-                # }
-            },
+            "text": { "type": "text" },
             "text_len": {"type": "integer"},
             "reply_count": { "type": "integer" },
             "comment_thread": { "type": "keyword" },

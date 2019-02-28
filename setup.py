@@ -24,7 +24,7 @@ setup(
     package_dir={
             'pyg': 'pyg'
         },
-    version="0.2.0",
+    version="0.4.0",
     py_modules=["pyg", "analysis"],
     install_requires=requirements,
     include_package_data=True,
