@@ -194,7 +194,7 @@ def elasticsearch_ingest(group, costum_prefix="", is_video_list=False):
 
             comments_doc = []
             for comment in video.comments:
-                top_level_comment = True if "." in comment["id"] else False
+                top_level_comment = False if "." in comment["id"] else True
 
                 if comment["text"]:
                     text_len = len(comment["text"].split())
