@@ -74,15 +74,16 @@ class YoutubeArchiveReader(object):
 
 
     def _get_update_files(self, filepath):
-
+        print("loading update files ...")
         update_files = []
 
         base_path = os.path.dirname(filepath)
         archive = os.path.basename(filepath)
         for filename in sorted(os.listdir(base_path)):
             if archive != filename and filename.startswith(archive.replace(".zip", "")) and not filename.endswith(".prov"):
-                print(filename)
+                print("\t", filename)
                 update_files.append(ZipArchive(os.path.join(base_path, filename)))
+        print("finished")
         return update_files
 
 
@@ -104,7 +105,7 @@ class YoutubeArchiveReader(object):
             title = playlist["snippet"]["title"]
             self.playlists.append(Playlist(id_, title, self._archive))
         self._update_video_playlists()
-      
+
     def _update_video_playlists(self):
         for video in self:
             for playlist in self.playlists:

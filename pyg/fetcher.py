@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetch classes for youtube channel and videos
+Classes for fetching and updating youtube channel and videos
 
 Use:
 from youtubetools.fetcher import ChannelFetcher, VideoFetcher
