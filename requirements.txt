@@ -9,10 +9,10 @@ elasticsearch==6.3.1
 matplotlib_venn==0.11.5
 networkx==2.2
 scipy==1.1.0
-provit==1.0.0
+provit==0.9.0
 lxml==4.2.5
 google_api_python_client==1.7.4
 beautifulsoup4==4.6.3
 python_dateutil==2.7.5
 SocksiPy-branch==1.01
-PyYAML==3.13
+PyYAML==4.2b1
