@@ -12,7 +12,7 @@ import json
 import socks
 import socket
 
-__VERSION__ = 0.4
+__VERSION__ = 1.0
 
 PROV_AGENT = "pyg_{}".format(__VERSION__)
 
