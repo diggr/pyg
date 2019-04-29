@@ -111,7 +111,7 @@ def load_config():
     """
     try:
         with open("config.yml") as f:
-            config = yaml.load(f)
+            config = yaml.safe_load(f)
         PROJECT = config["project"]
         PROJECT["dir"]
         YOUTUBE_API_KEY = config["youtube"]["api-key"]
@@ -140,7 +140,7 @@ def load_elasticsearch_config():
     """
     try:
         with open("config.yml") as f:
-            config = yaml.load(f)
+            config = yaml.safe_load(f)
     except:
         raise IOError("config.yml not there ...")
 
@@ -165,7 +165,7 @@ def channel_config():
     """
     try:
         with open("channels.yml") as f:
-            fetch = yaml.load(f)
+            fetch = yaml.safe_load(f)
     except:
         raise IOError("No valid channels.yml available")
     
@@ -176,7 +176,7 @@ def channel_config():
 def video_config():
     try:
         with open("videos.yml") as f:
-            fetch = yaml.load(f)
+            fetch = yaml.safe_load(f)
     except:
         raise IOError("No valid videos.yml available")
     print(fetch)
@@ -189,7 +189,7 @@ def network_config(network_name):
     """
     try:
         with open("network.yml") as f:
-            network = yaml.load(f)
+            network = yaml.safe_load(f)
     except:
         raise IOError("network.yml does not exist")
 
