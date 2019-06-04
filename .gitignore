@@ -8,3 +8,6 @@ pyg.egg-info/
 provit.egg-info/
 pit
 data/
+pyg.egg-info/
+provit.egg-info/
+.coverage
