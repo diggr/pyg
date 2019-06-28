@@ -1,5 +1,5 @@
 *.yml
-.vscode
+.vscode/
 __pycache__
 pit/__pycache__
 youtube/__pycache__
@@ -7,3 +7,7 @@ youtube/pit/__pycache__
 pyg.egg-info/
 provit.egg-info/
 pit
+data/
+pyg.egg-info/
+provit.egg-info/
+.coverage
