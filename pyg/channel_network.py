@@ -1,4 +1,10 @@
 """
+
+THE RELATED CHANNELS FEATURE WAS DISCONTINUED IN MAY 2019.
+IT IS NOT POSSIBLE ANYMORE TO BUILD A CHANNEL NETWORK WITH
+THIS TOOL.
+
+
 ChannelNetwork class for building a network of youtube channels based on the displayed related channels list
 
 Usage:
