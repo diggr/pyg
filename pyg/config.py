@@ -12,7 +12,7 @@ import json
 import socks
 import socket
 
-__VERSION__ = 1.0
+__VERSION__ = "1.0.0"
 
 PROV_AGENT = "pyg_{}".format(__VERSION__)
 
@@ -28,15 +28,7 @@ NETWORK_TEMPLATE = """
 #   type: 'videos
 #   seeds:
 #   - 'Fg1EvKUhZw4'
-#   depth: 3
-#
-# yongyea:
-#   type: 'channels'
-#   seeds:
-#   - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
-#   - 'user/pythonselkanHD'
-#   featured: false
-#   depth: 5    
+#   depth: 3  
 """
 
 FETCH_TEMPLATE = """

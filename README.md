@@ -2,13 +2,13 @@
 
 A tool for Youtube data retrieval and analysis.
 
-Current version: 0.4
+Current version: 1.0.0
 
 ## Functionality:
  
 * Fetch Youtube data (metadata for videos, playlists, comments and captions) for channels as well as for collections of videos
 * Export data to Elasticsearch (videos and comments)
-* Build networks of related channels or recommended videos
+* Build networks of recommended videos
 * Saves networks as .graphml files (can be imported into Gephi)
 
 ## Install:
@@ -198,7 +198,7 @@ New videos will also fetched.
 An update-file for each channel in the form of <channel_name>_<timestamp>.zip will be created in the data folder.
 
 
-### Build recommended videos and related channel networks
+### Build recommended videos networks
 
 Add network configuration to network.yml
 
@@ -209,14 +209,6 @@ darksouls:
   q: 'dark souls'
   depth: 2
 
-
-mgs:
-  type: 'channels'
-  seeds:
-  - 'channel/UCT6iAerLNE-0J1S_E97UAuQ'
-  - 'user/pythonselkanHD'
-  featured: false
-  depth: 5  
 ```
 
 Then use the pyg network command to build the network graphml file
