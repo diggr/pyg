@@ -49,6 +49,3 @@ tqdm==4.31.1
 uritemplate==3.0.0        # via google-api-python-client
 urllib3==1.24.3           # via elasticsearch, requests
 werkzeug==0.15.4          # via flask, provit
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools==41.0.1
