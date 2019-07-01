@@ -135,15 +135,6 @@ def network(ctx, api, network_name):
             depth=config["depth"])
         vrn.to_graphml()
 
-    elif type_ == "channels":
-        cn = RelatedChannelsNetwork(
-            name=network_name, 
-            seeds=config["seeds"], 
-            depth=config["depth"], 
-            featured=config["featured"])
-        cn.to_graphml()
-
-
 
 
 # ANALYSIS COMMAND

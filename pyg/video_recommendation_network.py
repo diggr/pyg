@@ -112,7 +112,8 @@ class VideoRecommendationNetwork(object):
         """
         gets video metada from youtube api for all videos in video network
         """
-        for video_id in tqdm(self.videos):
+        for i, video_id in enumerate(self.videos):
+            print(i, len(self.videos))
             meta = self.youtube.videos().list(
                 part="snippet,statistics",
                 id=video_id
@@ -207,10 +208,12 @@ class VideoRecommendationNetwork(object):
 
         print("fetching related video data and building edgelist")
         if not api:
-            for seed in tqdm(self.seeds):
+            for i, seed in enumerate(self.seeds):
+                print("{}/{}".format(i, len(self.seeds)))
                 self._get_recommended_videos(seed, depth)
         else:
-            for seed in tqdm(self.seeds):
+            for i, seed in enumerate(self.seeds):
+                print("{}/{}".format(i, len(self.seeds)))
                 self._get_recommended_videos_api(seed, depth)
 
         print("get video metadata")
