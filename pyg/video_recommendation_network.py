@@ -1,6 +1,6 @@
 """
 Builds a youtube video network based on youtube's 'up next' recommendations.
-Starting piont is a search term. The term will be looked up on youtube's search API,
+Starting point is a search term. The term will be looked up on youtube's search API,
 and the top 30 videos will act as seed points for the network.
 Per default the network goes two iterations deep. Increasing that number also increases
 the size of the network exponentially. 
