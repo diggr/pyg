@@ -6,7 +6,7 @@
 #
 atomicwrites==1.4.0       # via pytest
 attrs==19.3.0             # via pytest
-beautifulsoup4==4.7.1     # via -r requirements.txt
+beautifulsoup4==4.8.2     # via -r requirements.txt
 cachetools==4.1.1         # via -r requirements.txt, google-auth
 certifi==2020.6.20        # via -r requirements.txt, requests
 chardet==3.0.4            # via -r requirements.txt, requests
@@ -14,10 +14,10 @@ click==7.0                # via -r requirements.txt, flask, pip-tools, provit
 coverage==5.1             # via pytest-cov
 cycler==0.10.0            # via -r requirements.txt, matplotlib
 decorator==4.4.2          # via -r requirements.txt, networkx
-elasticsearch==7.0.0      # via -r requirements.txt
+elasticsearch==7.5.1      # via -r requirements.txt
 flask-cors==3.0.8         # via -r requirements.txt, provit
 flask==1.0.3              # via -r requirements.txt, flask-cors, provit
-google-api-python-client==1.7.8  # via -r requirements.txt
+google-api-python-client==1.7.11  # via -r requirements.txt
 google-auth-httplib2==0.0.3  # via -r requirements.txt, google-api-python-client
 google-auth==1.18.0       # via -r requirements.txt, google-api-python-client, google-auth-httplib2
 httplib2==0.18.1          # via -r requirements.txt, google-api-python-client, google-auth-httplib2
@@ -27,15 +27,15 @@ isodate==0.6.0            # via -r requirements.txt, provit, rdflib
 itsdangerous==1.1.0       # via -r requirements.txt, flask, provit
 jinja2==2.10.1            # via -r requirements.txt, flask, provit
 kiwisolver==1.2.0         # via -r requirements.txt, matplotlib
-lxml==4.3.3               # via -r requirements.txt
+lxml==4.5.0               # via -r requirements.txt
 markupsafe==1.1.1         # via -r requirements.txt, jinja2, provit
 matplotlib-venn==0.11.5   # via -r requirements.txt
 matplotlib==3.2.2         # via -r requirements.txt, matplotlib-venn
 more-itertools==8.4.0     # via pytest
-networkx==2.3             # via -r requirements.txt
-numpy==1.16.3             # via -r requirements.txt, matplotlib, matplotlib-venn, pandas, scipy
+networkx==2.4             # via -r requirements.txt
+numpy==1.18.1             # via -r requirements.txt, matplotlib, matplotlib-venn, pandas, scipy
 packaging==20.4           # via pytest
-pandas==0.24.2            # via -r requirements.txt
+pandas==1.0.1             # via -r requirements.txt
 pip-tools==3.7.0          # via -r requirements-dev.in
 pluggy==0.13.1            # via pytest
 provit==1.0.2             # via -r requirements.txt
@@ -45,20 +45,20 @@ pyasn1==0.4.8             # via -r requirements.txt, pyasn1-modules, rsa
 pyparsing==2.4.0          # via -r requirements.txt, matplotlib, packaging, provit, rdflib
 pytest-cov==2.7.1         # via -r requirements-dev.in
 pytest==4.6.2             # via -r requirements-dev.in, pytest-cov
-python-dateutil==2.8.0    # via -r requirements.txt, matplotlib, pandas
+python-dateutil==2.8.1    # via -r requirements.txt, matplotlib, pandas
 pytz==2020.1              # via -r requirements.txt, pandas
 pyyaml==5.1.1             # via -r requirements.txt, provit
 rdflib-jsonld==0.4.0      # via -r requirements.txt, provit
 rdflib==4.2.2             # via -r requirements.txt, provit, rdflib-jsonld
-requests==2.21.0          # via -r requirements.txt
+requests==2.22.0          # via -r requirements.txt
 rsa==4.6                  # via -r requirements.txt, google-auth
 scipy==1.5.0              # via -r requirements.txt, matplotlib-venn
 six==1.12.0               # via -r requirements.txt, cycler, flask-cors, google-api-python-client, google-auth, isodate, packaging, pip-tools, provit, pytest, python-dateutil
 socksipy-branch==1.1      # via -r requirements.txt
 soupsieve==2.0.1          # via -r requirements.txt, beautifulsoup4
-tqdm==4.31.1              # via -r requirements.txt
+tqdm==4.42.1              # via -r requirements.txt
 uritemplate==3.0.1        # via -r requirements.txt, google-api-python-client
-urllib3==1.24.3           # via -r requirements.txt, elasticsearch, requests
+urllib3==1.25.9           # via -r requirements.txt, elasticsearch, requests
 wcwidth==0.2.5            # via pytest
 werkzeug==0.15.4          # via -r requirements.txt, flask, provit
 zipp==3.1.0               # via importlib-metadata
