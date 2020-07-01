@@ -2,7 +2,7 @@ beautifulsoup4==4.7.1
 elasticsearch==7.0.0
 google-api-python-client==1.7.8
 lxml==4.3.3
-matplotlib==3.0.3
+matplotlib==3.2.2
 matplotlib-venn==0.11.5
 networkx==2.3
 numpy==1.16.3
@@ -11,7 +11,7 @@ provit==1.0.2
 python-dateutil==2.8.0
 PyYAML==5.1.1
 requests==2.21.0
-scipy==1.2.1
+scipy==1.5.0
 SocksiPy-branch==1.1
 tqdm==4.31.1
 

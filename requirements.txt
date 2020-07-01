@@ -4,48 +4,51 @@
 #
 #    make update-requirements
 #
-beautifulsoup4==4.7.1
-cachetools==3.1.1         # via google-auth
-certifi==2019.6.16        # via requests
+beautifulsoup4==4.7.1     # via -r requirements.in
+cachetools==4.1.1         # via google-auth
+certifi==2020.6.20        # via requests
 chardet==3.0.4            # via requests
 click==7.0                # via flask, provit
 cycler==0.10.0            # via matplotlib
-decorator==4.4.0          # via networkx
-elasticsearch==7.0.0
+decorator==4.4.2          # via networkx
+elasticsearch==7.0.0      # via -r requirements.in
 flask-cors==3.0.8         # via provit
 flask==1.0.3              # via flask-cors, provit
-google-api-python-client==1.7.8
+google-api-python-client==1.7.8  # via -r requirements.in
 google-auth-httplib2==0.0.3  # via google-api-python-client
-google-auth==1.6.3        # via google-api-python-client, google-auth-httplib2
-httplib2==0.13.0          # via google-api-python-client, google-auth-httplib2
+google-auth==1.18.0       # via google-api-python-client, google-auth-httplib2
+httplib2==0.18.1          # via google-api-python-client, google-auth-httplib2
 idna==2.8                 # via requests
 isodate==0.6.0            # via provit, rdflib
 itsdangerous==1.1.0       # via flask, provit
 jinja2==2.10.1            # via flask, provit
-kiwisolver==1.1.0         # via matplotlib
-lxml==4.3.3
+kiwisolver==1.2.0         # via matplotlib
+lxml==4.3.3               # via -r requirements.in
 markupsafe==1.1.1         # via jinja2, provit
-matplotlib-venn==0.11.5
-matplotlib==3.0.3
-networkx==2.3
-numpy==1.16.3
-pandas==0.24.2
-provit==1.0.2
-pyasn1-modules==0.2.5     # via google-auth
-pyasn1==0.4.5             # via pyasn1-modules, rsa
+matplotlib-venn==0.11.5   # via -r requirements.in
+matplotlib==3.2.2         # via -r requirements.in, matplotlib-venn
+networkx==2.3             # via -r requirements.in
+numpy==1.16.3             # via -r requirements.in, matplotlib, matplotlib-venn, pandas, scipy
+pandas==0.24.2            # via -r requirements.in
+provit==1.0.2             # via -r requirements.in
+pyasn1-modules==0.2.8     # via google-auth
+pyasn1==0.4.8             # via pyasn1-modules, rsa
 pyparsing==2.4.0          # via matplotlib, provit, rdflib
-python-dateutil==2.8.0
-pytz==2019.1              # via pandas
-pyyaml==5.1.1
+python-dateutil==2.8.0    # via -r requirements.in, matplotlib, pandas
+pytz==2020.1              # via pandas
+pyyaml==5.1.1             # via -r requirements.in, provit
 rdflib-jsonld==0.4.0      # via provit
 rdflib==4.2.2             # via provit, rdflib-jsonld
-requests==2.21.0
-rsa==4.0                  # via google-auth
-scipy==1.2.1
+requests==2.21.0          # via -r requirements.in
+rsa==4.6                  # via google-auth
+scipy==1.5.0              # via -r requirements.in, matplotlib-venn
 six==1.12.0               # via cycler, flask-cors, google-api-python-client, google-auth, isodate, provit, python-dateutil
-socksipy-branch==1.1
-soupsieve==1.9.2          # via beautifulsoup4
-tqdm==4.31.1
-uritemplate==3.0.0        # via google-api-python-client
+socksipy-branch==1.1      # via -r requirements.in
+soupsieve==2.0.1          # via beautifulsoup4
+tqdm==4.31.1              # via -r requirements.in
+uritemplate==3.0.1        # via google-api-python-client
 urllib3==1.24.3           # via elasticsearch, requests
 werkzeug==0.15.4          # via flask, provit
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
