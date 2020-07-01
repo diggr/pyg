@@ -116,6 +116,17 @@ or for a specific group:
 $ pyg fetch videos my_video_list
 ```
 
+### Search
+
+You can search youtube an get a result list, which is ready to be pasted into the `videos.yml` file.
+
+```zsh
+$ pyg search diggr --results 50
+```
+
+The `--results` flag sets the number of results (max: 50, default: 10).
+
+
 ### Export to elasticsearch
 
 The video and channel data can be exported to an elasticsearch instance to ease further

@@ -1,5 +1,7 @@
 import click
 import os
+from apiclient.discovery import build
+
 from .config import init_project, load_config, channel_config, video_config, network_config, set_proxy
 from .fetcher import ChannelFetcher, VideoFetcher, ChannelUpdateFetcher
 from .channel_network import RelatedChannelsNetwork
@@ -29,7 +31,7 @@ pyg
     network
         <network name>
         --api/--no-api (default: api)
-    
+
     analysis
         <analysis type>
 
@@ -129,8 +131,8 @@ def network(ctx, api, network_name):
         seeds = config["seeds"] if "seeds" in config else None
         vrn = VideoRecommendationNetwork(
             name=network_name,
-            q=q, 
-            seeds=seeds, 
+            q=q,
+            seeds=seeds,
             api=api,
             depth=config["depth"])
         vrn.to_graphml()
@@ -168,5 +170,20 @@ def videos(group, prefix):
     elasticsearch_ingest(group, prefix, is_video_list=True)
     print("es videos")
 
-
-
+@cli.command()
+@click.option("--results", type=click.INT, default=10)
+@click.argument("searchterm")
+def search(results, searchterm):
+    cf = load_config()
+    youtube = build('youtube', 'v3', developerKey=cf["YOUTUBE_API_KEY"])
+    search_response = youtube.search().list(
+        part='snippet',
+        maxResults=results,
+        q=searchterm,
+        order='viewCount',
+        type='video',
+    ).execute()
+    for item in search_response['items']:
+        print(f"# {item['snippet']['title']}")
+        print(f"# {item['snippet']['description']}")
+        print(f"\t- \'{item['id']['videoId']}\'")

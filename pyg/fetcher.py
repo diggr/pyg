@@ -48,7 +48,7 @@ def youtube_api_call(cmd, max_retries=MAX_RETRIES):
         try:
             data = cmd.execute()
             break
-        except: 
+        except:
             retries += 1
             print("retrying fetching data from youtube api ...")
 
@@ -142,7 +142,7 @@ class YoutubeFetcher(object):
 
     def _fetch_video_comments(self, video_id):
         """
-        Fetches comments (top level comments + replies) for a youtube video 
+        Fetches comments (top level comments + replies) for a youtube video
         from the youtube api.
         """
 
@@ -168,7 +168,7 @@ class YoutubeFetcher(object):
                         maxResults=100,
                         pageToken=next_page
                     )
-            
+
             try:
                 comment_threads = youtube_api_call(cmd)
             except ApiRetryExceededError:
@@ -190,21 +190,21 @@ class YoutubeFetcher(object):
                     thread_all_comments = []
                     next_page = None
                     while True:
-                        
+
                         cmd = self.youtube.comments().list(
                                     part='snippet',
                                     parentId=thread["id"],
                                     maxResults=100,
                                     pageToken=next_page
                                 )
-                        
+
                         comments = youtube_api_call(cmd)
-                        
+
                         thread_all_comments += comments["items"]
                         if "nextPageToken" in comments:
                             next_page = comments["nextPageToken"]
                         else:
-                            break    
+                            break
                     thread_comments[thread["id"]] = thread_all_comments
 
             self._archive.add(thread_comments_filepath, thread_comments)
@@ -256,13 +256,13 @@ class YoutubeFetcher(object):
         if xml_filepath in self._archive:
             print(" ... Captions for video '{}' already fetched".format(video_id))
             return
-            
+
 
         captions_xml = self._get_caption_xml(video_id)
 
         if captions_xml:
             captions_txt = self._caption_xml_to_str(captions_xml)
-            
+
             self._archive.add(xml_filepath, captions_xml)
             self._archive.add(txt_filepath, captions_txt)
 
@@ -285,7 +285,7 @@ class VideoFetcher(YoutubeFetcher):
 
         self._archive.add("video_ids.json", video_ids)
 
-        
+
         for i, video_id in enumerate(video_ids):
             print ("{}/{}".format(i, len(video_ids)))
             self._fetch_video_metadata(video_id)
@@ -295,8 +295,8 @@ class VideoFetcher(YoutubeFetcher):
                 self._fetch_video_captions(video_id)
 
         self._archive.add_provenance (
-            agents=[ PROV_AGENT ], 
-            activity="fetch_video_collection", 
+            agents=[ PROV_AGENT ],
+            activity="fetch_video_collection",
             description="Youtube video/comment data for collection <{}>".format(project_name))
 
 
@@ -315,7 +315,7 @@ class ChannelFetcher(YoutubeFetcher):
         self._comments = comments
         self._skip = skip
 
-        
+
         print(channel)
         #get channel id
         if "channel/" in channel:
@@ -344,8 +344,8 @@ class ChannelFetcher(YoutubeFetcher):
                 self._fetch_channel()
 
                 self._archive.add_provenance(
-                    agents=[ PROV_AGENT ], 
-                    activity="fetch_channel", 
+                    agents=[ PROV_AGENT ],
+                    activity="fetch_channel",
                     description="Youtube video/comment data for channel <{}>".format(self.channel_title))
 
 
@@ -355,7 +355,7 @@ class ChannelFetcher(YoutubeFetcher):
         """
         #save channel meta data
         channel_meta_filepath = "channel_meta.json"
-        if channel_meta_filepath not in self._archive:        
+        if channel_meta_filepath not in self._archive:
             self._archive.add(channel_meta_filepath, self.channel_metadata)
 
         print("fetching video data ...")
@@ -363,7 +363,7 @@ class ChannelFetcher(YoutubeFetcher):
         videos_filepath = "video_ids.json"
         if videos_filepath in self._archive:
             video_ids = self._archive.get(videos_filepath)
-        else:   
+        else:
             # get id of uploads playlist
             uploads = self.channel_metadata["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
 
@@ -381,20 +381,20 @@ class ChannelFetcher(YoutubeFetcher):
                 playlist_page = youtube_api_call(cmd)
 
                 video_ids += [ x["snippet"]["resourceId"]["videoId"] for x in playlist_page["items"] ]
-                
+
                 if "nextPageToken" in playlist_page:
                     next_page = playlist_page["nextPageToken"]
                 else:
                     break
             self._archive.add(videos_filepath, video_ids)
 
-        for i, video_id in enumerate(video_ids):  
+        for i, video_id in enumerate(video_ids):
             print("{}/{}".format(i, len(video_ids)))
             self._fetch_video_metadata(video_id)
             if self._comments:
                 self._fetch_video_comments(video_id)
             if self._captions:
-                self._fetch_video_captions(video_id)                
+                self._fetch_video_captions(video_id)
 
     def _fetch_playlists(self):
         """
@@ -522,11 +522,11 @@ class ChannelUpdateFetcher(YoutubeFetcher):
             playlist_page = youtube_api_call(cmd)
 
             video_ids += [ x["snippet"]["resourceId"]["videoId"] for x in playlist_page["items"] ]
-            
+
             if "nextPageToken" in playlist_page:
                 next_page = playlist_page["nextPageToken"]
             else:
-                break            
+                break
 
         for i, video_id in enumerate(video_ids):
             print("{}/{}".format(i, len(video_ids)))
@@ -553,11 +553,11 @@ class ChannelUpdateFetcher(YoutubeFetcher):
             self._archive.add("video_ids.json", updated)
             prov = Provenance(self._archive.filepath)
             prov.add(
-                agents=[ PROV_AGENT ], 
-                activity="update_channel", 
+                agents=[ PROV_AGENT ],
+                activity="update_channel",
                 description="Youtube video/comment update data for channel <{}>".format(self.channel_title)
             )
             prov.add_sources([ self._current.last_update_file() ])
             prov.save()
-            
+
 
