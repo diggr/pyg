@@ -132,7 +132,7 @@ class YoutubeFetcher(object):
 
         #check if metadata already in archive
         metadata_filepath = os.path.join(self.VMETA, "{}.json".format(video_id))
-        if metadata_filepath in self._archive:
+        if self._archive.contains(metadata_filepath):
             print(" ... Metadata for video '{}' already fetched".format(video_id))
             return
 
@@ -149,7 +149,7 @@ class YoutubeFetcher(object):
         threads_filepath = os.path.join(self.VCOMMENTS, "{}_threads.json".format(video_id))
         thread_comments_filepath =  os.path.join(self.VCOMMENTS, "{}_comments.json".format(video_id))
 
-        if threads_filepath in self._archive:
+        if self._archive.contains(threads_filepath) and self._archive.contains(thread_comments_filepath):
             print(" ... Comments for video '{}' already fetched".format(video_id))
             return
 
