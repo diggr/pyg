@@ -230,6 +230,7 @@ class YoutubeFetcher(object):
 
         caption_url = self._get_caption_url(rsp.text)
         if caption_url:
+            print(caption_url)
             rsp = requests.get(caption_url)
             return rsp.text
         else:
@@ -258,7 +259,8 @@ class YoutubeFetcher(object):
             return
             
 
-        captions_xml = self._get_caption_xml(video_id)
+        #captions_xml = self._get_caption_xml(video_id)
+        captions_xml = None
 
         if captions_xml:
             captions_txt = self._caption_xml_to_str(captions_xml)
@@ -327,7 +329,7 @@ class ChannelFetcher(YoutubeFetcher):
 
         #fetch channel meta data
         self.channel_metadata = self.youtube.channels().list(
-            part="contentDetails,snippet,brandingSettings,contentOwnerDetails,invideoPromotion,statistics,status,topicDetails",
+            part="contentDetails,snippet,brandingSettings,contentOwnerDetails,statistics,status,topicDetails",
             id=channel_id
             ).execute()
 

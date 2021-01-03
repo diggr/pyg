@@ -79,10 +79,10 @@ def _init_es(es, prefix, video_index, comment_index):
         es.indices.delete(index=comment_index)  
     
     es.indices.create(video_index)
-    es.indices.put_mapping(index=video_index, doc_type=VIDEO_DOC_TYPE, body=VIDEO_MAPPING)
+    es.indices.put_mapping(index=video_index, doc_type=VIDEO_DOC_TYPE, body=VIDEO_MAPPING, include_type_name=True)
 
     es.indices.create(comment_index)
-    es.indices.put_mapping(index=comment_index, doc_type=COMMENT_DOC_TYPE, body=COMMENT_MAPPING)
+    es.indices.put_mapping(index=comment_index, doc_type=COMMENT_DOC_TYPE, body=COMMENT_MAPPING, include_type_name=True)
 
 
 def load_comment_classifier(cf):
